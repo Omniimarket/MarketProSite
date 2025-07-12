@@ -1,9 +1,10 @@
-// pages/_app.js
+// pages/_app.tsx
 // Custom App component to initialize pages and include global styles.
 import '../styles/globals.css';
 import Head from 'next/head'; // Import Head for global meta/links
+import type { AppProps } from 'next/app'; // Import AppProps for typing
 
-function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }: AppProps) { // Added AppProps type
   return (
     <>
       <Head>
