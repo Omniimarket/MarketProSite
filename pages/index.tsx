@@ -1,79 +1,135 @@
 // pages/index.tsx
-// This is your main homepage component for Next.js.
+// This is your main homepage component, now replicating the Firebase design
+// and using local assets (no Firebase Storage URLs).
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image'; // Import Next.js Image component
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4 sm:p-8">
+    <div className="min-h-screen flex flex-col">
       <Head>
-        <title>MarketEdge Pro - Home</title>
-        <meta name="description" content="Welcome to MarketEdge Pro - Your destination for trading indicators and market insights." />
-        <link rel="icon" href="/favicon.ico" />
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MarketEdge Pro - Empowering Your Trading Decisions</title>
+        {/* Favicon from the original HTML - base64 SVG */}
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%2230%22 width=%2220%22 height=%2260%22 fill=%22%234f46e5%22/><rect x=%2240%22 y=%2220%22 width=%2220%22 height=%2270%22 fill=%22%233b82f6%22/><rect x=%2270%22 y=%2240%22 width=%2220%22 height=%2250%22 fill=%22%234f46e5%22/></svg>" />
+        {/* Google Fonts - Inter is already in _app.tsx, but including for standalone HTML context if needed */}
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
       </Head>
 
-      <main className="flex flex-col items-center justify-center w-full flex-1 px-4 text-center py-12">
-        <h1 className="text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-600 mb-6 drop-shadow-lg animate-fade-in-down">
-          Welcome to <span className="text-blue-900">MarketEdge Pro</span>
-        </h1>
-
-        <p className="text-xl md:text-2xl text-gray-800 mb-10 max-w-3xl leading-relaxed animate-fade-in-up">
-          Unlock unparalleled market insights with our cutting-edge trading indicators and stay ahead of the curve with our expertly curated blog.
-        </p>
-
-        <div className="flex flex-col sm:flex-row space-y-5 sm:space-y-0 sm:space-x-6">
-          <Link href="/blog" className="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-              Read Our Blog
-          </Link>
-          <Link href="/indicators" className="px-10 py-4 border-2 border-blue-600 text-blue-700 font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-blue-50 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-              View Indicators
-          </Link>
-          <Link href="/marketpulse" className="px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:from-purple-700 hover:to-pink-800 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300">
-              Market Pulse Widgets
-          </Link>
+      {/* Header Section - Replicated from Firebase HTML */}
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg p-4">
+        <div className="container mx-auto flex items-center">
+          {/* Logo Image - Now using Next.js Image component with local path */}
+          <Image
+            src="/MainLogo2.png" // Local path in the public directory
+            alt="MarketProEdge Logo"
+            width={350} // Set a max width for the image for Next/Image optimization
+            height={70} // Set an appropriate height based on aspect ratio
+            className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
+            priority // Load this image with high priority as it's above the fold
+          />
+          <nav className="ml-auto">
+            <ul className="flex space-x-6 items-center">
+              <li><Link href="/" className="text-white font-semibold border-b-2 border-white pb-1">Home</Link></li>
+              <li><Link href="/marketpulse" className="text-white hover:text-blue-200 transition duration-300">MarketPulse</Link></li>
+              <li><Link href="/indicators" className="text-white hover:text-blue-200 transition duration-300">Indicators</Link></li>
+              {/* Dashboard and Admin links are hidden in original HTML. Would require auth logic in Next.js */}
+              {/* <li id="dashboardNavLink" className="hidden"><Link href="/dashboard" className="text-white hover:text-blue-200 transition duration-300">Dashboard</Link></li> */}
+              {/* <li id="adminNavLink" className="hidden"><Link href="/admin/dashboard" className="text-white hover:text-blue-200 transition duration-300">Admin</Link></li> */}
+              <li><Link href="/blog" className="text-white hover:text-blue-200 transition duration-300">Blog</Link></li>
+              <li><Link href="/about" className="text-white hover:text-blue-200 transition duration-300">About</Link></li>
+              <li><Link href="/contact" className="text-white hover:text-blue-200 transition duration-300">Contact</Link></li>
+              {/* Auth links - simplified for visual mockup */}
+              <li id="authLinks">
+                  <Link href="/auth" className="bg-white text-blue-700 py-1 px-3 rounded-full text-sm font-semibold hover:bg-blue-100 transition duration-300 mr-2">Login</Link>
+              </li>
+              {/* Logged in user display - simplified for visual mockup */}
+              {/* <li id="loggedInUser" className="hidden flex items-center">
+                  <span className="text-sm font-medium mr-2">Welcome, <span id="userEmailDisplay"></span></span>
+                  <button id="logoutBtn" className="bg-red-500 text-white py-1 px-3 rounded-full text-sm font-semibold hover:bg-red-600 transition duration-300">Logout</button>
+              </li> */}
+            </ul>
+          </nav>
         </div>
+      </header>
+
+      {/* Main Content Area - Hero Section */}
+      <main className="flex-grow flex items-center justify-center">
+        <section className="hero-section text-white w-full">
+          <div className="container mx-auto text-center px-4 py-16">
+            <h2 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6 animate-fade-in-down">
+              Empowering Traders with Premium Indicators and Market Insights
+            </h2>
+            <p className="text-xl md:text-2xl mb-10 opacity-90 animate-fade-in-up">
+              Discover powerful trading indicators and stay informed with our comprehensive blog posts on market analysis.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+              <Link href="/marketpulse" className="bg-white text-blue-700 hover:bg-gray-100 font-bold py-4 px-10 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-lg animate-bounce-in">
+                  Go to MarketPulse
+              </Link>
+              <Link href="/blog" className="border-2 border-white text-white hover:bg-white hover:text-blue-700 font-bold py-4 px-10 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-lg animate-fade-in">
+                  Read Blog
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
-      <footer className="w-full h-24 flex items-center justify-center border-t border-gray-200 mt-12 bg-white bg-opacity-70 rounded-t-lg shadow-inner">
-        <a
-          className="flex items-center justify-center text-gray-700 hover:text-gray-900 transition-colors duration-200"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className="h-4 ml-2 filter grayscale hover:grayscale-0 transition-all duration-200" />
-        </a>
+      {/* Footer Section - Replicated from Firebase HTML */}
+      <footer className="bg-gray-800 text-white p-6 mt-auto">
+        <div className="container mx-auto text-center">
+          <p className="text-sm">&copy; 2025 MarketEdge Pro. All rights reserved.</p>
+          <p className="text-xs mt-2 text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+        </div>
       </footer>
 
-      {/* Basic CSS for animations */}
+      {/* Inline styles for custom gradients and animations from original HTML */}
       <style jsx>{`
+        .hero-section {
+            background: linear-gradient(135deg, #4f46e5, #3b82f6);
+            min-height: calc(100vh - 80px); /* Adjust for header height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        /* Keyframe animations from original HTML */
         @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in-down {
-          animation: fadeInDown 1s ease-out forwards;
+        @keyframes bounceIn {
+            0% { transform: scale(0.1); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
         }
-        .animate-fade-in-up {
-          animation: fadeInUp 1s ease-out forwards;
-          animation-delay: 0.3s; /* Delay for a staggered effect */
+        /* Animation application from original HTML */
+        .animate-fade-in-down { animation: fadeInDown 1s ease-out forwards; }
+        .animate-fade-in-up { animation: fadeInUp 1s ease-out 0.5s forwards; }
+        .animate-bounce-in { animation: bounceIn 0.8s ease-out 1s forwards; }
+        .animate-fade-in { animation: fadeInDown 1s ease-out 1.2s forwards; } /* Reusing fadeInDown for 'fade-in' */
+
+        /* Scrollbar styles from original HTML - apply globally if desired, or keep here for mockup */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+            cursor: pointer;
         }
       `}</style>
     </div>
