@@ -1,6 +1,6 @@
 // pages/index.tsx
 // This is your main homepage component, now replicating the Firebase design
-// and using local assets (no Firebase Storage URLs).
+// and using local assets (no Firebase Storage URLs), and no Login button in header.
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image'; // Import Next.js Image component
@@ -32,24 +32,12 @@ export default function Home() {
           />
           <nav className="ml-auto">
             <ul className="flex space-x-6 items-center">
-              <li><Link href="/" className="text-white font-semibold border-b-2 border-white pb-1">Home</Link></li>
+              <li><Link href="/" className="text-white hover:text-blue-200 transition duration-300">Home</Link></li>
               <li><Link href="/marketpulse" className="text-white hover:text-blue-200 transition duration-300">MarketPulse</Link></li>
               <li><Link href="/indicators" className="text-white hover:text-blue-200 transition duration-300">Indicators</Link></li>
-              {/* Dashboard and Admin links are hidden in original HTML. Would require auth logic in Next.js */}
-              {/* <li id="dashboardNavLink" className="hidden"><Link href="/dashboard" className="text-white hover:text-blue-200 transition duration-300">Dashboard</Link></li> */}
-              {/* <li id="adminNavLink" className="hidden"><Link href="/admin/dashboard" className="text-white hover:text-blue-200 transition duration-300">Admin</Link></li> */}
               <li><Link href="/blog" className="text-white hover:text-blue-200 transition duration-300">Blog</Link></li>
-              <li><Link href="/about" className="text-white hover:text-blue-200 transition duration-300">About</Link></li>
-              <li><Link href="/contact" className="text-white hover:text-blue-200 transition duration-300">Contact</Link></li>
-              {/* Auth links - simplified for visual mockup */}
-              <li id="authLinks">
-                  <Link href="/auth" className="bg-white text-blue-700 py-1 px-3 rounded-full text-sm font-semibold hover:bg-blue-100 transition duration-300 mr-2">Login</Link>
-              </li>
-              {/* Logged in user display - simplified for visual mockup */}
-              {/* <li id="loggedInUser" className="hidden flex items-center">
-                  <span className="text-sm font-medium mr-2">Welcome, <span id="userEmailDisplay"></span></span>
-                  <button id="logoutBtn" className="bg-red-500 text-white py-1 px-3 rounded-full text-sm font-semibold hover:bg-red-600 transition duration-300">Logout</button>
-              </li> */}
+              {/* Removed About and Contact links as requested previously */}
+              {/* Removed Login button as requested */}
             </ul>
           </nav>
         </div>
@@ -77,10 +65,16 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer Section - Replicated from Firebase HTML */}
+      {/* Footer Section - Replicated from Firebase HTML with new links */}
       <footer className="bg-gray-800 text-white p-6 mt-auto">
         <div className="container mx-auto text-center">
           <p className="text-sm">&copy; 2025 MarketEdge Pro. All rights reserved.</p>
+          <div className="flex justify-center space-x-4 mt-2 text-sm">
+            <Link href="/about" className="text-gray-400 hover:text-white transition duration-300">About</Link>
+            <Link href="/contact" className="text-gray-400 hover:text-white transition duration-300">Contact</Link>
+            <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition duration-300">Terms of Service</Link>
+            <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition duration-300">Privacy Policy</Link>
+          </div>
           <p className="text-xs mt-2 text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
