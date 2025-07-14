@@ -1,8 +1,10 @@
 // pages/contact.tsx
+// Fixed: TypeScript errors for implicitly 'any' type on event parameters.
+
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react'; // Import event types
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -13,11 +15,13 @@ export default function Contact() {
   });
   const [status, setStatus] = useState(''); // 'success', 'error', 'sending'
 
-  const handleChange = (e) => {
+  // Explicitly type the event parameter for handleChange
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  // Explicitly type the event parameter for handleSubmit
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('sending');
 
@@ -37,7 +41,7 @@ export default function Contact() {
         const errorData = await response.json();
         setStatus(`error: ${errorData.error || 'Something went wrong.'}`);
       }
-    } catch (error) {
+    } catch (error: any) { // Catch error as 'any' for simpler handling of unknown error types
       console.error('Contact form submission error:', error);
       setStatus(`error: ${error.message || 'Network error.'}`);
     }
@@ -50,9 +54,9 @@ export default function Contact() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Contact Us - MarketEdge Pro</title>
         <meta name="description" content="Get in touch with MarketEdge Pro for support, inquiries, or feedback." />
-        {/* Favicon - Three Bars (ESLint fixed) */}
+        {/* Custom Favicon from /public directory (PNG) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-       
+        {/* Font link removed from here, now in _document.js */}
       </Head>
 
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
