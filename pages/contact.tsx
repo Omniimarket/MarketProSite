@@ -1,5 +1,5 @@
 // pages/contact.tsx
-// Fixed: TypeScript error for 'no-explicit-any' in the catch block.
+// Fixed: TypeScript error for 'rows' attribute expecting a number.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -134,7 +134,8 @@ export default function Contact() {
               <textarea
                 id="message"
                 name="message"
-                rows="5"
+                // Changed rows="5" to rows={5}
+                rows={5}
                 value={formData.message}
                 onChange={handleChange}
                 required
