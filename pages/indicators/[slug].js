@@ -113,7 +113,7 @@ export default function IndicatorDetail({ indicator }) {
                 <title>{indicator.name} - MarketEdge Pro</title>
                 <meta name="description" content={indicator.shortDescription} />
                 {/* Favicon - Three Bars (ESLint fixed) */}
-                <link rel="icon" href="data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><rect x=&quot;10&quot; y=&quot;30&quot; width=&quot;20&quot; height=&quot;60&quot; fill=&quot;#4f46e5&quot;/><rect x=&quot;40&quot; y=&quot;20&quot; width=&quot;20&quot; height=&quot;70&quot; fill=&quot;#3b82f6&quot;/><rect x=&quot;70&quot; y=&quot;40&quot; width=&quot;20&quot; height=&quot;50&quot; fill=&quot;#4f46e5&quot;/></svg>" />
+                <link rel="icon" href="/favicon.png" type="image/png" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
             </Head>
 

@@ -166,7 +166,7 @@ export default function MarketPulse() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>MarketEdge Pro - MarketPulse</title>
         {/* Favicon - Three Bars (from original HTML) */}
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%2230%22 width=%2220%22 height=%2260%22 fill=%22%234f46e5%22/><rect x=%2240%22 y=%2220%22 width=%2220%22 height=%2270%22 fill=%22%233b82f6%22/><rect x=%2270%22 y=%2240%22 width=%2220%22 height=%2250%22 fill=%22%234f46e5%22/></svg>" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
         {/* Google Fonts - Inter is already in _app.tsx, but useful for standalone HTML context */}
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
       </Head>

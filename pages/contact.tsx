@@ -1,6 +1,7 @@
 // pages/contact.tsx
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 
 export default function Contact() {
@@ -8,9 +9,9 @@ export default function Contact() {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   });
-  const [status, setStatus] = useState(''); // 'idle', 'loading', 'success', 'error'
+  const [status, setStatus] = useState(''); // 'success', 'error', 'sending'
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,14 +19,10 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('loading');
+    setStatus('sending');
 
     try {
-      // This is a placeholder for your Firebase Cloud Function API endpoint
-      // You would replace '/api/email/send-contact-email' with the actual path
-      // if you decide to implement a backend email sending service.
-      // For now, this will just simulate a successful submission.
-      const response = await fetch('/api/email/send-contact-email', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,99 +35,131 @@ export default function Contact() {
         setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
       } else {
         const errorData = await response.json();
-        setStatus('error');
-        console.error('Contact form submission failed:', errorData.error);
+        setStatus(`error: ${errorData.error || 'Something went wrong.'}`);
       }
     } catch (error) {
-      setStatus('error');
-      console.error('Error submitting contact form:', error);
+      console.error('Contact form submission error:', error);
+      setStatus(`error: ${error.message || 'Network error.'}`);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center p-4 sm:p-8">
+    <div className="min-h-screen flex flex-col bg-gray-100 font-inter">
       <Head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Contact Us - MarketEdge Pro</title>
         <meta name="description" content="Get in touch with MarketEdge Pro for support, inquiries, or feedback." />
+        {/* Favicon - Three Bars (ESLint fixed) */}
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
       </Head>
 
-      <header className="w-full max-w-5xl mx-auto py-10 text-center">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-600 mb-4 drop-shadow-md">Contact Us</h1>
-        <p className="text-lg md:text-xl text-gray-800 mb-6 max-w-2xl mx-auto">We'd love to hear from you! Reach out with any questions, feedback, or support inquiries.</p>
-        <Link href="/" className="inline-flex items-center px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">
-          &larr; Back to Home
-        </Link>
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
+        <div className="container mx-auto px-6 flex items-center justify-between">
+          <Link href="/">
+            <Image
+              src="/MainLogo2.png"
+              alt="MarketProEdge Logo"
+              width={350}
+              height={70}
+              className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
+              priority
+            />
+          </Link>
+          <nav className="space-x-4">
+            <Link href="/" className="hover:text-blue-200 transition duration-300">Home</Link>
+            <Link href="/marketpulse" className="hover:text-blue-200 transition duration-300">MarketPulse</Link>
+            <Link href="/indicators" className="hover:text-blue-200 transition duration-300">Indicators</Link>
+            <Link href="/blog" className="hover:text-blue-200 transition duration-300">Blog</Link>
+          </nav>
+        </div>
       </header>
 
-      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 bg-white shadow-xl rounded-xl">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">Name</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label htmlFor="subject" className="block text-gray-700 text-sm font-bold mb-2">Subject</label>
-            <input
-              type="text"
-              id="subject"
-              name="subject"
-              value={formData.subject}
-              onChange={handleChange}
-              required
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Message</label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              rows="6"
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            ></textarea>
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
-            disabled={status === 'loading'}
-          >
-            {status === 'loading' ? 'Sending...' : 'Send Message'}
-          </button>
+      <main className="container mx-auto py-12 px-6 lg:px-8 flex-grow">
+        <div className="bg-white p-8 rounded-lg shadow-xl max-w-2xl mx-auto">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-6 text-center">Contact Us</h1>
+          <p className="text-center text-lg text-gray-700 mb-8">Have a question or need support? Send us a message!</p>
 
-          {status === 'success' && (
-            <p className="text-green-600 text-center mt-4">Your message has been sent successfully!</p>
-          )}
-          {status === 'error' && (
-            <p className="text-red-600 text-center mt-4">Failed to send message. Please try again later.</p>
-          )}
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                value={formData.message}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === 'sending'}
+              className="w-full inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {status === 'sending' ? 'Sending...' : 'Send Message'}
+            </button>
+
+            {status === 'success' && (
+              <p className="mt-4 text-center text-green-600 font-semibold">Your message has been sent successfully!</p>
+            )}
+            {status.startsWith('error') && (
+              <p className="mt-4 text-center text-red-600 font-semibold">Error: {status.substring(7)}</p>
+            )}
+          </form>
+        </div>
       </main>
 
-      <footer className="w-full h-24 flex items-center justify-center border-t border-gray-200 mt-12 bg-white bg-opacity-70 rounded-t-lg shadow-inner">
-        <p className="text-gray-700">&copy; 2025 MarketEdge Pro</p>
+      <footer className="bg-gray-800 text-white py-6 mt-12">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
+          <div className="mt-2 space-x-4 text-sm">
+            <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+            <Link href="/contact" className="text-white border-b-2 border-white pb-1">Contact</Link>
+            <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+            <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
+          </div>
+          <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+        </div>
       </footer>
     </div>
   );

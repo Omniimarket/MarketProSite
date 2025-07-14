@@ -8,6 +8,7 @@ export default function PrivacyPolicy() {
       <Head>
         <title>Privacy Policy - MarketEdge Pro</title>
         <meta name="description" content="Understand how MarketEdge Pro collects, uses, and protects your personal data." />
+      <link rel="icon" href="/favicon.png" type="image/png" />
       </Head>
 
       <header className="w-full max-w-5xl mx-auto py-10 text-center">
