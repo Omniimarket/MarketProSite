@@ -1,6 +1,8 @@
 // pages/indicators/[slug].js
 // Dynamic route for individual indicator detail pages, fetching content from Sanity.
-// Fixed: Thumbnail images are now square and sharp. Main image is sharp with robust zoom.
+// Fixed: ESLint error for unescaped entities in favicon SVG.
+// Includes: Lemon Squeezy integration, dynamic main image aspect ratio,
+// square & sharp thumbnails, and hover zoom feature.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -46,7 +48,8 @@ export default function IndicatorDetail({ indicator }) {
                     <meta charSet="UTF-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                     <title>Indicator Not Found - MarketEdge Pro</title>
-                    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%2230%22 width=%2220%22 height=%2260%22 fill=%22%234f46e5%22/><rect x=%2240%22 y=%2220%22 width=%2220%22 height=%2270%22 fill=%22%233b82f6%22/><rect x=%2270%22 y=%2240%22 width=%2220%22 height=%2250%22 fill=%22%234f46e5%22/></svg>" />
+                    {/* Favicon - Three Bars (ESLint fixed) */}
+                    <link rel="icon" href="data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><rect x=&quot;10&quot; y=&quot;30&quot; width=&quot;20&quot; height=&quot;60&quot; fill=&quot;#4f46e5&quot;/><rect x=&quot;40&quot; y=&quot;20&quot; width=&quot;20&quot; height=&quot;70&quot; fill=&quot;#3b82f6&quot;/><rect x=&quot;70&quot; y=&quot;40&quot; width=&quot;20&quot; height=&quot;50&quot; fill=&quot;#4f46e5&quot;/></svg>" />
                     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
                 </Head>
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">Indicator Not Found</h1>
@@ -76,7 +79,6 @@ export default function IndicatorDetail({ indicator }) {
         const y = (e.pageY - top) / height;
 
         setZoomPosition({ x, y });
-        // Only set zoomed to true if the mouse is over the image (handled by onMouseLeave)
     };
 
     // Handle mouse entering the image container
@@ -110,7 +112,8 @@ export default function IndicatorDetail({ indicator }) {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>{indicator.name} - MarketEdge Pro</title>
                 <meta name="description" content={indicator.shortDescription} />
-                <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%2230%22 width=%2220%22 height=%2260%22 fill=%22%234f46e5%22/><rect x=%2240%22 y=%2220%22 width=%2220%22 height=%2270%22 fill=%22%233b82f6%22/><rect x=%2270%22 y=%2240%22 width=%2220%22 height=%2250%22 fill=%22%234f46e5%22/></svg>" />
+                {/* Favicon - Three Bars (ESLint fixed) */}
+                <link rel="icon" href="data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><rect x=&quot;10&quot; y=&quot;30&quot; width=&quot;20&quot; height=&quot;60&quot; fill=&quot;#4f46e5&quot;/><rect x=&quot;40&quot; y=&quot;20&quot; width=&quot;20&quot; height=&quot;70&quot; fill=&quot;#3b82f6&quot;/><rect x=&quot;70&quot; y=&quot;40&quot; width=&quot;20&quot; height=&quot;50&quot; fill=&quot;#4f46e5&quot;/></svg>" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
             </Head>
 
@@ -212,7 +215,7 @@ export default function IndicatorDetail({ indicator }) {
                                         Full Details
                                         {isDetailsExpanded ? <ChevronUpIcon className="w-6 h-6 text-blue-600" /> : <ChevronDownIcon className="w-6 h-6 text-blue-600" />}
                                     </h2>
-                                    <div className={`relative overflow-hidden transition-all duration-500 ease-in-out ${isDetailsExpanded ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                                    <div className={`relative overflow-hidden transition-all duration-500 ease-in-out ${isDetailsExpanded ? 'max-h-[1000px]' : 'max-h-40'}`}>
                                         <div className="prose prose-lg text-gray-700 max-w-none">
                                             <SanityPortableText value={indicator.fullDetails} />
                                         </div>
@@ -255,7 +258,7 @@ export default function IndicatorDetail({ indicator }) {
                         Important Notes & Disclosures
                         {isDisclosuresExpanded ? <ChevronUpIcon className="w-6 h-6 text-yellow-800" /> : <ChevronDownIcon className="w-6 h-6 text-yellow-800" />}
                     </h2>
-                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isDisclosuresExpanded ? 'max-h-[1000px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                    <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isDisclosuresExpanded ? 'max-h-[1000px]' : 'max-h-0'}`}>
                         <div className="text-gray-700 text-sm prose prose-sm max-w-none">
                             <p className="font-semibold mb-3">
                                 <strong>Note:</strong> All purchases provide lifetime access and include future updates. Compatibility with popular trading platforms. Download available instantly after purchase.
@@ -306,7 +309,7 @@ export async function getStaticProps({ params }) {
         slug,
         shortDescription,
         price,
-        lemonSqueezyProductUrl, // Ensure this is fetched for Lemon Squeezy integration
+        lemonSqueezyProductUrl,
         galleryImages[] {
             asset->{
                 _id,
