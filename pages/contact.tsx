@@ -1,5 +1,5 @@
 // pages/contact.tsx
-// Fixed: TypeScript errors for implicitly 'any' type on event parameters.
+// Fixed: TypeScript error for 'no-explicit-any' in the catch block.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -41,9 +41,16 @@ export default function Contact() {
         const errorData = await response.json();
         setStatus(`error: ${errorData.error || 'Something went wrong.'}`);
       }
-    } catch (error: any) { // Catch error as 'any' for simpler handling of unknown error types
-      console.error('Contact form submission error:', error);
-      setStatus(`error: ${error.message || 'Network error.'}`);
+    } catch (error) { // Removed ': any'
+      // Check if the error is an instance of Error to safely access .message
+      if (error instanceof Error) {
+        console.error('Contact form submission error:', error);
+        setStatus(`error: ${error.message}`);
+      } else {
+        // Handle cases where the error is not an Error instance (e.g., a string or other type)
+        console.error('An unknown error occurred during contact form submission:', error);
+        setStatus(`error: An unknown error occurred.`);
+      }
     }
   };
 
