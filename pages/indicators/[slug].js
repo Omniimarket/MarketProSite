@@ -1,6 +1,6 @@
 // pages/indicators/[slug].js
 // Dynamic route for individual indicator detail pages, fetching content from Sanity.
-// Fixed: ESLint error for unescaped entities in favicon SVG.
+// Fixed: 'aspectRatioPadding' error by ensuring its usage in the main image container's style.
 // Includes: Lemon Squeezy integration, dynamic main image aspect ratio,
 // square & sharp thumbnails, and hover zoom feature.
 
@@ -48,9 +48,9 @@ export default function IndicatorDetail({ indicator }) {
                     <meta charSet="UTF-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                     <title>Indicator Not Found - MarketEdge Pro</title>
-                    {/* Favicon - Three Bars (ESLint fixed) */}
-                    <link rel="icon" href="data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><rect x=&quot;10&quot; y=&quot;30&quot; width=&quot;20&quot; height=&quot;60&quot; fill=&quot;#4f46e5&quot;/><rect x=&quot;40&quot; y=&quot;20&quot; width=&quot;20&quot; height=&quot;70&quot; fill=&quot;#3b82f6&quot;/><rect x=&quot;70&quot; y=&quot;40&quot; width=&quot;20&quot; height=&quot;50&quot; fill=&quot;#4f46e5&quot;/></svg>" />
-                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+                    {/* Custom Favicon from /public directory (PNG) */}
+                    <link rel="icon" href="/favicon.png" type="image/png" />
+                   
                 </Head>
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">Indicator Not Found</h1>
                 <p className="text-lg text-gray-700 mb-6">The indicator you are looking for does not exist.</p>
@@ -112,9 +112,9 @@ export default function IndicatorDetail({ indicator }) {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>{indicator.name} - MarketEdge Pro</title>
                 <meta name="description" content={indicator.shortDescription} />
-                {/* Favicon - Three Bars (ESLint fixed) */}
+                {/* Custom Favicon from /public directory (PNG) */}
                 <link rel="icon" href="/favicon.png" type="image/png" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+               
             </Head>
 
             <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
@@ -151,7 +151,8 @@ export default function IndicatorDetail({ indicator }) {
                              onMouseMove={handleMouseMove}
                              onMouseEnter={handleMouseEnter} // Trigger zoom on mouse enter
                              onMouseLeave={handleMouseLeave} // Disable zoom on mouse leave
-                             style={{ paddingBottom: imageWidth && imageHeight ? `${(imageHeight / imageWidth) * 100}%` : '75%' }}
+                             // THIS IS THE LINE THAT USES aspectRatioPadding
+                             style={{ paddingBottom: aspectRatioPadding ? `${aspectRatioPadding}%` : '75%' }}
                         >
                             {mainImageSrc ? (
                                 <Image

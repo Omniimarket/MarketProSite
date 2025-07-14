@@ -14,7 +14,7 @@ function MyApp({ Component, pageProps }: AppProps) { // Added AppProps type
         {/* Favicon */}
         <link rel="icon" href="/favicon.png" type="image/png" />
         {/* Google Fonts - Inter */}
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+        
       </Head>
       <Component {...pageProps} />
     </>

@@ -168,7 +168,7 @@ export default function MarketPulse() {
         {/* Favicon - Three Bars (from original HTML) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
         {/* Google Fonts - Inter is already in _app.tsx, but useful for standalone HTML context */}
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+        
       </Head>
 
       {/* Header Section - Replicated from Firebase HTML (using local logo) */}

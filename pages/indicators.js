@@ -17,7 +17,7 @@ export default function Indicators({ indicators }) {
         <meta name="description" content="Explore our powerful trading indicators." />
         {/* Favicon - Three Bars (from original HTML) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+        
       </Head>
 
       {/* Header Section - Replicated from Firebase HTML (using local logo) */}

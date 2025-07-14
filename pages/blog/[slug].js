@@ -103,7 +103,7 @@ export default function BlogPost({ post }) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Post Not Found</title>
           <link rel="icon" href="/favicon.png" type="image/png" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+          
         </Head>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Blog Post Not Found</h1>
         <p className="text-lg text-gray-700 mb-6">The blog post you are looking for does not exist.</p>
@@ -123,7 +123,7 @@ export default function BlogPost({ post }) {
         <title>{post.title} - MarketEdge Pro Blog</title>
         <meta name="description" content={post.description} />
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%2230%22 width=%2220%22 height=%2260%22 fill=%22%234f46e5%22/><rect x=%2240%22 y=%2220%22 width=%2220%22 height=%2270%22 fill=%22%233b82f6%22/><rect x=%2270%22 y=%2240%22 width=%2220%22 height=%2250%22 fill=%22%234f46e5%22/></svg>" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+        
         {/* Custom styles to override prose for images */}
         <style jsx>{`
           .prose img {

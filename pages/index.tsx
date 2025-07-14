@@ -15,7 +15,7 @@ export default function Home() {
         {/* Favicon from the original HTML - base64 SVG */}
         <link rel="icon" href="/favicon.png" type="image/png" />
         {/* Google Fonts - Inter is already in _app.tsx, but including for standalone HTML context if needed */}
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+        
       </Head>
 
       {/* Header Section - Replicated from Firebase HTML */}

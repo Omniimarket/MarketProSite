@@ -52,7 +52,7 @@ export default function Contact() {
         <meta name="description" content="Get in touch with MarketEdge Pro for support, inquiries, or feedback." />
         {/* Favicon - Three Bars (ESLint fixed) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+       
       </Head>
 
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
