@@ -16,5 +16,6 @@ module.exports = {
   },
   plugins: [
     require('@tailwindcss/typography'), // Add Tailwind Typography plugin for Portable Text rendering
+    require('@tailwindcss/aspect-ratio'), // Add this line
   ],
 }

@@ -1,9 +1,11 @@
 // pages/indicators.js
 // Indicators listing page, fetching products from Sanity, with Firebase-like design.
+// CRITICAL FIX: Correctly fetches and displays images from 'galleryImages' and the 'slug.current'.
+
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image'; // Import Next.js Image component
-import { sanityClient, urlFor } from '../lib/sanity.client'; // Import sanityClient
+import { sanityClient, urlFor } from '../lib/sanity.client'; // Import sanityClient and urlFor
 
 export default function Indicators({ indicators }) {
   return (
@@ -36,9 +38,7 @@ export default function Indicators({ indicators }) {
               <li><Link href="/marketpulse" className="text-white hover:text-blue-200 transition duration-300">MarketPulse</Link></li>
               <li><Link href="/indicators" className="text-white font-semibold border-b-2 border-white pb-1">Indicators</Link></li>
               <li><Link href="/blog" className="text-white hover:text-blue-200 transition duration-300">Blog</Link></li>
-              <li id="authLinks">
-                  <Link href="/auth" className="bg-white text-blue-700 py-1 px-3 rounded-full text-sm font-semibold hover:bg-blue-100 transition duration-300 mr-2">Login</Link>
-              </li>
+              {/* Removed Auth links */}
             </ul>
           </nav>
         </div>
@@ -57,26 +57,33 @@ export default function Indicators({ indicators }) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {indicators.map((indicator) => (
-                <div key={indicator.slug.current} className="bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
-                  {indicator.coverImage && (
-                    <div className="relative w-full h-48">
-                      <Image
-                        src={urlFor(indicator.coverImage).width(400).height(250).url()}
-                        alt={indicator.coverImage.alt || indicator.name}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-t-xl"
-                      />
+                <div key={indicator.slug} className="bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden">
+                  <Link href={`/indicators/${indicator.slug}`} className="block"> {/* Now using indicator.slug directly */}
+                    {/* Check if galleryImages array exists and has at least one image */}
+                    {indicator.galleryImages && indicator.galleryImages.length > 0 ? (
+                      <div className="relative w-full h-48">
+                        <Image
+                          src={urlFor(indicator.galleryImages[0]).width(400).height(250).url()} // Use the first image from galleryImages
+                          alt={indicator.galleryImages[0].alt || indicator.name}
+                          layout="fill"
+                          objectFit="cover"
+                          className="rounded-t-xl"
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-xl">
+                        <span className="text-gray-500 text-sm">No Image</span>
+                      </div>
+                    )}
+                    <div className="p-6 flex flex-col flex-grow">
+                      <h3 className="text-2xl font-semibold text-blue-700 mb-2 leading-tight">{indicator.name}</h3>
+                      <p className="text-gray-700 text-base mb-4 flex-grow line-clamp-3">{indicator.shortDescription}</p>
+                      <p className="text-xl font-bold text-green-600 mb-4">{indicator.price}</p>
+                      <span className="mt-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 ease-in-out text-center transform hover:scale-105">
+                          View Details
+                      </span>
                     </div>
-                  )}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-2xl font-semibold text-blue-700 mb-2 leading-tight">{indicator.name}</h3>
-                    <p className="text-gray-700 text-base mb-4 flex-grow line-clamp-3">{indicator.shortDescription}</p>
-                    <p className="text-xl font-bold text-green-600 mb-4">{indicator.price}</p>
-                    <Link href={`/indicators/${indicator.slug.current}`} className="mt-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 ease-in-out text-center transform hover:scale-105">
-                        View Details
-                    </Link>
-                  </div>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -87,14 +94,14 @@ export default function Indicators({ indicators }) {
       {/* Footer Section - Replicated from Firebase HTML with new links */}
       <footer className="bg-gray-800 text-white p-6 mt-auto">
         <div className="container mx-auto text-center">
-          <p className="text-sm">&copy; 2025 MarketEdge Pro. All rights reserved.</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
           <div className="flex justify-center space-x-4 mt-2 text-sm">
             <Link href="/about" className="text-gray-400 hover:text-white transition duration-300">About</Link>
             <Link href="/contact" className="text-gray-400 hover:text-white transition duration-300">Contact</Link>
             <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition duration-300">Terms of Service</Link>
             <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition duration-300">Privacy Policy</Link>
           </div>
-          <p className="text-xs mt-2 text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+          <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
     </div>
@@ -104,10 +111,10 @@ export default function Indicators({ indicators }) {
 export async function getStaticProps() {
   const indicators = await sanityClient.fetch(`*[_type == "indicator"] {
     name,
-    slug,
+    "slug": slug.current, // *** CRITICAL FIX: Fetch slug.current as 'slug' ***
     shortDescription,
     price,
-    coverImage {
+    galleryImages[] {
       asset->{
         _id,
         url

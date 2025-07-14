@@ -29,20 +29,6 @@ export default function MarketPulse() {
 
       // Append the script to the widget container
       containerRef.current.appendChild(script);
-
-      // Removed the manual appending of the copyright div.
-      // TradingView widgets typically inject their own copyright notice.
-      // const copyrightDiv = document.createElement('div');
-      // copyrightDiv.className = 'tradingview-widget-copyright';
-      // copyrightDiv.style.position = 'absolute';
-      // copyrightDiv.style.bottom = '0';
-      // copyrightDiv.style.right = '0';
-      // copyrightDiv.style.fontSize = '11px';
-      // copyrightDiv.style.color = '#95989A';
-      // copyrightDiv.style.margin = '0 0 1px 0';
-      // copyrightDiv.style.padding = '0 4px';
-      // copyrightDiv.innerHTML = '<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>';
-      // containerRef.current.appendChild(copyrightDiv);
     }
   };
 
@@ -203,10 +189,7 @@ export default function MarketPulse() {
               <li><Link href="/marketpulse" className="text-white font-semibold border-b-2 border-white pb-1">MarketPulse</Link></li>
               <li><Link href="/indicators" className="text-white hover:text-blue-200 transition duration-300">Indicators</Link></li>
               <li><Link href="/blog" className="text-white hover:text-blue-200 transition duration-300">Blog</Link></li>
-              {/* Auth links - simplified for visual mockup */}
-              <li id="authLinks">
-                  <Link href="/auth" className="bg-white text-blue-700 py-1 px-3 rounded-full text-sm font-semibold hover:bg-blue-100 transition duration-300 mr-2">Login</Link>
-              </li>
+              {/* Removed Auth links */}
             </ul>
           </nav>
         </div>
