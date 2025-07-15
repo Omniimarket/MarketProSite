@@ -1,8 +1,8 @@
 // pages/indicators/[slug].js
 // Dynamic route for individual indicator detail pages, fetching content from Sanity.
-// Fixed: 'aspectRatioPadding' error by ensuring its usage in the main image container's style.
+// Updated: 'Full Details' section is now closed by default on page load.
 // Includes: Lemon Squeezy integration, dynamic main image aspect ratio,
-// square & sharp thumbnails, and hover zoom feature.
+// square & sharp thumbnails, hover zoom, and custom PNG favicon.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -13,8 +13,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 export default function IndicatorDetail({ indicator }) {
-    // State for collapsible full details - set to true to be open by default
-    const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
+    // State for collapsible full details - set to false to be CLOSED by default
+    const [isDetailsExpanded, setIsDetailsExpanded] = useState(false); // CHANGED: from true to false
     // State for collapsible disclosures - remains false to be closed by default
     const [isDisclosuresExpanded, setIsDisclosuresExpanded] = useState(false);
 
@@ -30,8 +30,7 @@ export default function IndicatorDetail({ indicator }) {
     // Set initial main image and active thumbnail when component mounts or indicator changes
     useEffect(() => {
         if (indicator?.galleryImages?.length > 0) {
-            // Use a higher resolution for the main display image
-            const initialImageUrl = urlFor(indicator.galleryImages[0]).width(1600).url(); // Increased resolution
+            const initialImageUrl = urlFor(indicator.galleryImages[0]).width(2400).url();
             setMainImageSrc(initialImageUrl);
             setActiveThumbnailIndex(0);
         } else {
@@ -50,7 +49,7 @@ export default function IndicatorDetail({ indicator }) {
                     <title>Indicator Not Found - MarketEdge Pro</title>
                     {/* Custom Favicon from /public directory (PNG) */}
                     <link rel="icon" href="/favicon.png" type="image/png" />
-                   
+                    {/* Font link removed from here, now in _document.js */}
                 </Head>
                 <h1 className="text-3xl font-bold text-gray-900 mb-4">Indicator Not Found</h1>
                 <p className="text-lg text-gray-700 mb-6">The indicator you are looking for does not exist.</p>
@@ -63,8 +62,7 @@ export default function IndicatorDetail({ indicator }) {
 
     // Function to handle thumbnail clicks, updating the main image and active index
     const handleThumbnailClick = (img, index) => {
-        // Fetch a high-resolution version for the main display when a thumbnail is clicked
-        const newImageUrl = urlFor(img).width(1600).url(); // Increased resolution
+        const newImageUrl = urlFor(img).width(2400).url();
         setMainImageSrc(newImageUrl);
         setActiveThumbnailIndex(index);
         setIsZoomed(false); // Reset zoom when changing image
@@ -114,7 +112,7 @@ export default function IndicatorDetail({ indicator }) {
                 <meta name="description" content={indicator.shortDescription} />
                 {/* Custom Favicon from /public directory (PNG) */}
                 <link rel="icon" href="/favicon.png" type="image/png" />
-               
+                {/* Font link removed from here, now in _document.js */}
             </Head>
 
             <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
@@ -151,7 +149,6 @@ export default function IndicatorDetail({ indicator }) {
                              onMouseMove={handleMouseMove}
                              onMouseEnter={handleMouseEnter} // Trigger zoom on mouse enter
                              onMouseLeave={handleMouseLeave} // Disable zoom on mouse leave
-                             // THIS IS THE LINE THAT USES aspectRatioPadding
                              style={{ paddingBottom: aspectRatioPadding ? `${aspectRatioPadding}%` : '75%' }}
                         >
                             {mainImageSrc ? (
@@ -180,7 +177,7 @@ export default function IndicatorDetail({ indicator }) {
                                         onClick={() => handleThumbnailClick(img, index)}
                                     >
                                         <Image
-                                            src={urlFor(img).width(400).height(400).url()} // Increased resolution for thumbnails
+                                            src={urlFor(img).width(400).height(400).url()} // Thumbnails remain 400x400
                                             alt={img.alt || `Thumbnail ${index + 1}`}
                                             layout="fill"
                                             objectFit="cover" // Changed to 'cover' for thumbnails to fill the square space
@@ -216,7 +213,7 @@ export default function IndicatorDetail({ indicator }) {
                                         Full Details
                                         {isDetailsExpanded ? <ChevronUpIcon className="w-6 h-6 text-blue-600" /> : <ChevronDownIcon className="w-6 h-6 text-blue-600" />}
                                     </h2>
-                                    <div className={`relative overflow-hidden transition-all duration-500 ease-in-out ${isDetailsExpanded ? 'max-h-[1000px]' : 'max-h-40'}`}>
+                                    <div className={`relative overflow-hidden transition-all duration-500 ease-in-out ${isDetailsExpanded ? 'max-h-[1500px]' : 'max-h-40'}`}>
                                         <div className="prose prose-lg text-gray-700 max-w-none">
                                             <SanityPortableText value={indicator.fullDetails} />
                                         </div>
