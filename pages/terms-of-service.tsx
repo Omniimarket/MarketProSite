@@ -1,45 +1,53 @@
 // pages/terms-of-service.tsx
+// Updated: Integrated the standard responsive header and footer for consistency across the site.
+
 import Head from 'next/head';
 import Link from 'next/link';
-import Image from 'next/image'; // Assuming Image is used for the logo
+import Image from 'next/image'; // Ensure Image component is imported
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 font-inter">
+    <div className="min-h-screen flex flex-col bg-gray-100 font-inter"> {/* Changed background for consistency */}
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Terms of Service - MarketEdge Pro</title>
         <meta name="description" content="Read the terms of service for MarketEdge Pro." />
-        {/* Favicon - Three Bars (ESLint fixed) */}
+        {/* Custom Favicon from /public directory (PNG) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-        
+        {/* Font link removed from here, now in _document.js */}
       </Head>
 
+      {/* Standard Header Component */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-        <div className="container mx-auto px-6 flex items-center justify-between">
+        {/* UPDATED: Reduced px for mobile, kept flex items-center justify-between */}
+        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/">
             <Image
               src="/MainLogo2.png"
               alt="MarketProEdge Logo"
               width={350}
               height={70}
-              className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
+              // UPDATED: Adjusted logo width for better mobile scaling
+              className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[350px] h-auto object-contain"
               priority
             />
           </Link>
-          <nav className="space-x-4">
-            <Link href="/" className="hover:text-blue-200 transition duration-300">Home</Link>
-            <Link href="/marketpulse" className="hover:text-blue-200 transition duration-300">MarketPulse</Link>
-            <Link href="/indicators" className="hover:text-blue-200 transition duration-300">Indicators</Link>
-            <Link href="/blog" className="hover:text-blue-200 transition duration-300">Blog</Link>
+          {/* UPDATED: Mobile-friendly navigation: horizontal scroll if needed, smaller text */}
+          <nav className="flex flex-nowrap overflow-x-auto whitespace-nowrap -mx-2 px-2 md:space-x-4">
+            <Link href="/" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Home</Link>
+            <Link href="/marketpulse" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">MarketPulse</Link>
+            <Link href="/indicators" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Indicators</Link>
+            <Link href="/blog" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Blog</Link>
           </nav>
         </div>
       </header>
 
       <main className="container mx-auto py-12 px-6 lg:px-8 flex-grow">
         <div className="bg-white p-8 rounded-lg shadow-xl">
-          <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Terms of Service</h1>
+          {/* Moved page title and description into main content area */}
+          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 text-center">Terms of Service</h1>
+          <p className="text-center text-lg text-gray-700 mb-8 max-w-2xl mx-auto">Read the terms of service for MarketEdge Pro.</p>
 
           <div className="prose prose-lg text-gray-700 max-w-none">
             <p>Welcome to MarketEdge Pro! These Terms of Service (the &quot;Terms&quot;) govern your access to and use of the MarketEdge Pro website and its services, including but not limited to the purchase and use of trading indicators and related content. By accessing or using our website, you agree to be bound by these Terms.</p>
@@ -85,13 +93,14 @@ export default function TermsOfService() {
         </div>
       </main>
 
+      {/* Standard Footer Component */}
       <footer className="bg-gray-800 text-white py-6 mt-12">
         <div className="container mx-auto px-6 text-center">
           <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
           <div className="mt-2 space-x-4 text-sm">
             <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
             <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
-            <Link href="/terms-of-service" className="text-white border-b-2 border-white pb-1">Terms of Service</Link>
+            <Link href="/terms-of-service" className="text-white border-b-2 border-white pb-1">Terms of Service</Link> {/* Highlight current page */}
             <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
           </div>
           <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>

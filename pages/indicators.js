@@ -1,6 +1,6 @@
 // pages/indicators.js
 // Displays a list of trading indicators fetched from Sanity.
-// Fixed: Increased resolution for indicator card images to prevent blurriness.
+// Updated: Integrated the standard responsive header and footer for consistency across the site.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -20,23 +20,27 @@ export default function Indicators({ indicators }) {
         {/* Font link removed from here, now in _document.js */}
       </Head>
 
+      {/* Standard Header Component */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-        <div className="container mx-auto px-6 flex items-center justify-between">
+        {/* UPDATED: Reduced px for mobile, kept flex items-center justify-between */}
+        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/">
             <Image
               src="/MainLogo2.png"
               alt="MarketProEdge Logo"
               width={350}
               height={70}
-              className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
+              // UPDATED: Adjusted logo width for better mobile scaling
+              className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[350px] h-auto object-contain"
               priority
             />
           </Link>
-          <nav className="space-x-4">
-            <Link href="/" className="hover:text-blue-200 transition duration-300">Home</Link>
-            <Link href="/marketpulse" className="hover:text-blue-200 transition duration-300">MarketPulse</Link>
-            <Link href="/indicators" className="text-white border-b-2 border-white pb-1">Indicators</Link>
-            <Link href="/blog" className="hover:text-blue-200 transition duration-300">Blog</Link>
+          {/* UPDATED: Mobile-friendly navigation: horizontal scroll if needed, smaller text */}
+          <nav className="flex flex-nowrap overflow-x-auto whitespace-nowrap -mx-2 px-2 md:space-x-4">
+            <Link href="/" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Home</Link>
+            <Link href="/marketpulse" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">MarketPulse</Link>
+            <Link href="/indicators" className="px-2 py-1 text-white border-b-2 border-white pb-1 text-sm md:text-base">Indicators</Link> {/* Highlight current page */}
+            <Link href="/blog" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Blog</Link>
           </nav>
         </div>
       </header>
@@ -55,8 +59,7 @@ export default function Indicators({ indicators }) {
                 <Link href={`/indicators/${indicator.slug.current}`} className="block relative h-60 w-full overflow-hidden">
                   {indicator.galleryImages && indicator.galleryImages.length > 0 ? (
                     <Image
-                      // Increased resolution for indicator card images
-                      src={urlFor(indicator.galleryImages[0]).width(800).height(450).url()} // Request 800px width, 450px height
+                      src={urlFor(indicator.galleryImages[0]).width(800).height(450).url()} // Increased resolution for card images
                       alt={indicator.galleryImages[0].alt || indicator.name}
                       layout="fill"
                       objectFit="cover" // Ensure image covers the area without stretching
@@ -83,6 +86,7 @@ export default function Indicators({ indicators }) {
         )}
       </main>
 
+      {/* Standard Footer Component */}
       <footer className="bg-gray-800 text-white py-6 mt-12">
         <div className="container mx-auto px-6 text-center">
           <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>

@@ -1,12 +1,17 @@
 // pages/marketpulse.tsx
 // This page replicates the Firebase MarketPulse HTML design,
 // integrating TradingView widgets within a Next.js component.
+// Updated: Implemented a responsive hamburger menu for mobile navigation.
+
 import Head from 'next/head';
 import Link from 'next/link';
-import Image from 'next/image'; // Import Next.js Image component
-import React, { useEffect, useRef } from 'react'; // Import useEffect and useRef
+import Image from 'next/image';
+import React, { useEffect, useRef, useState } from 'react'; // Import useState
 
 export default function MarketPulse() {
+  // State for mobile menu visibility
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   // Refs for each TradingView widget container
   const tickerTapeRef = useRef(null);
   const advancedChartRef = useRef(null);
@@ -18,16 +23,14 @@ export default function MarketPulse() {
   // Function to load a TradingView widget
   const loadTradingViewWidget = (containerRef, scriptSrc, config) => {
     if (containerRef.current) {
-      // Clear any existing widget to prevent duplicates on re-renders
-      containerRef.current.innerHTML = '';
+      containerRef.current.innerHTML = ''; // Clear any existing widget
 
       const script = document.createElement('script');
       script.src = scriptSrc;
       script.async = true;
       script.type = 'text/javascript';
-      script.innerHTML = JSON.stringify(config); // Pass config as innerHTML
+      script.setAttribute('data-config', JSON.stringify(config)); // Pass config as data attribute
 
-      // Append the script to the widget container
       containerRef.current.appendChild(script);
     }
   };
@@ -160,39 +163,67 @@ export default function MarketPulse() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50"> {/* Base background and flex column for footer */}
+    <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>MarketEdge Pro - MarketPulse</title>
-        {/* Favicon - Three Bars (from original HTML) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-        {/* Google Fonts - Inter is already in _app.tsx, but useful for standalone HTML context */}
-        
       </Head>
 
-      {/* Header Section - Replicated from Firebase HTML (using local logo) */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg p-4">
-        <div className="container mx-auto flex items-center">
-          {/* Logo Image - Now using Next.js Image component with local path */}
-          <Image
-            src="/MainLogo2.png" // Local path in the public directory
-            alt="MarketProEdge Logo"
-            width={350} // Set a max width for the image for Next/Image optimization
-            height={70} // Set an appropriate height based on aspect ratio
-            className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
-            priority // Load this image with high priority as it's above the fold
-          />
-          <nav className="ml-auto">
-            <ul className="flex space-x-6 items-center">
-              <li><Link href="/" className="text-white hover:text-blue-200 transition duration-300">Home</Link></li>
-              <li><Link href="/marketpulse" className="text-white font-semibold border-b-2 border-white pb-1">MarketPulse</Link></li>
-              <li><Link href="/indicators" className="text-white hover:text-blue-200 transition duration-300">Indicators</Link></li>
-              <li><Link href="/blog" className="text-white hover:text-blue-200 transition duration-300">Blog</Link></li>
-              {/* Removed Auth links */}
-            </ul>
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4 relative z-10"> {/* Added relative z-10 */}
+        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+          <Link href="/">
+            <Image
+              src="/MainLogo2.png"
+              alt="MarketProEdge Logo"
+              width={350}
+              height={70}
+              className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[350px] h-auto object-contain"
+              priority
+            />
+          </Link>
+
+          {/* Hamburger Menu Button (visible on mobile, hidden on larger screens) */}
+          <button
+            className="md:hidden text-white focus:outline-none"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {isMenuOpen ? (
+              // Close icon (X)
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-8 h-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              // Hamburger icon
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-8 h-8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            )}
+          </button>
+
+          {/* Desktop Navigation (visible on larger screens, hidden on mobile) */}
+          <nav className="hidden md:flex space-x-4">
+            <Link href="/" className="hover:text-blue-200 transition duration-300">Home</Link>
+            <Link href="/marketpulse" className="text-white border-b-2 border-white pb-1">MarketPulse</Link>
+            <Link href="/indicators" className="hover:text-blue-200 transition duration-300">Indicators</Link>
+            <Link href="/blog" className="hover:text-blue-200 transition duration-300">Blog</Link>
           </nav>
         </div>
+
+        {/* Mobile Navigation (visible when menu is open, hidden otherwise) */}
+        {/* Added dynamic classes for opening/closing animation and background */}
+        <nav className={`md:hidden absolute top-full left-0 w-full bg-indigo-700 bg-opacity-95 shadow-lg transform transition-all duration-300 ease-in-out ${
+          isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+        }`}>
+          <ul className="flex flex-col items-center py-4 space-y-4">
+            <li><Link href="/" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white hover:bg-blue-600 transition duration-300">Home</Link></li>
+            <li><Link href="/marketpulse" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white border-b-2 border-white pb-1">MarketPulse</Link></li>
+            <li><Link href="/indicators" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white hover:bg-blue-600 transition duration-300">Indicators</Link></li>
+            <li><Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white hover:bg-blue-600 transition duration-300">Blog</Link></li>
+          </ul>
+        </nav>
       </header>
 
       {/* Main Content Area - TradingView Widgets */}
@@ -242,40 +273,22 @@ export default function MarketPulse() {
         </section>
       </main>
 
-      {/* Footer Section - Replicated from Firebase HTML with new links */}
-      <footer className="bg-gray-800 text-white p-6 mt-auto">
-        <div className="container mx-auto text-center">
-          <p className="text-sm">&copy; 2025 MarketEdge Pro. All rights reserved.</p>
-          <div className="flex justify-center space-x-4 mt-2 text-sm">
-            <Link href="/about" className="text-gray-400 hover:text-white transition duration-300">About</Link>
-            <Link href="/contact" className="text-gray-400 hover:text-white transition duration-300">Contact</Link>
-            <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition duration-300">Terms of Service</Link>
-            <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition duration-300">Privacy Policy</Link>
+      {/* Standard Footer Component */}
+      <footer className="bg-gray-800 text-white py-6 mt-12">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
+          <div className="mt-2 space-x-4 text-sm">
+            <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+            <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
+            <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+            <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
           </div>
-          <p className="text-xs mt-2 text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+          <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
 
-      {/* Inline styles from original HTML (excluding scrollbar and message-box which should be global) */}
-      <style jsx>{`
-        /* Custom scrollbar for better aesthetics - if not already in globals.css */
-        /* If these are already in styles/globals.css, you can remove them here */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-            cursor: pointer;
-        }
-      `}</style>
+      {/* Removed custom scrollbar styles from here, as they are likely better placed globally */}
+      {/* If you still want custom scrollbars, consider adding them to your global CSS file (e.g., styles/globals.css) */}
     </div>
   );
 }
