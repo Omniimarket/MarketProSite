@@ -3,6 +3,7 @@
 // Updated: 'Full Details' section is now closed by default on page load.
 // Includes: Lemon Squeezy integration, dynamic main image aspect ratio,
 // square & sharp thumbnails, hover zoom, and custom PNG favicon.
+// Also updated: Standardized header and footer for site consistency.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -38,27 +39,6 @@ export default function IndicatorDetail({ indicator }) {
             setActiveThumbnailIndex(-1);
         }
     }, [indicator]);
-
-    // Handle case where indicator data is not found
-    if (!indicator) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 font-inter">
-                <Head>
-                    <meta charSet="UTF-8" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                    <title>Indicator Not Found - MarketEdge Pro</title>
-                    {/* Custom Favicon from /public directory (PNG) */}
-                    <link rel="icon" href="/favicon.png" type="image/png" />
-                    {/* Font link removed from here, now in _document.js */}
-                </Head>
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">Indicator Not Found</h1>
-                <p className="text-lg text-gray-700 mb-6">The indicator you are looking for does not exist.</p>
-                <Link href="/indicators" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out">
-                    &larr; Back to Indicators
-                </Link>
-            </div>
-        );
-    }
 
     // Function to handle thumbnail clicks, updating the main image and active index
     const handleThumbnailClick = (img, index) => {
@@ -103,6 +83,97 @@ export default function IndicatorDetail({ indicator }) {
         transition: 'transform 0.1s ease-out', // Smooth transition for zoom
     };
 
+    // Function to determine if a link is active for highlighting
+    // This is embedded directly in the component as there's no shared Header component
+    const isActive = (pathname) => {
+      if (typeof window !== 'undefined') {
+        // For dynamic routes like /blog/[slug] or /indicators/[slug], check if the path starts with the link's href
+        if (pathname === '/blog' || pathname === '/indicators') {
+          return window.location.pathname.startsWith(pathname);
+        }
+        return window.location.pathname === pathname;
+      }
+      return false;
+    };
+
+
+    if (!indicator) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 font-inter">
+                <Head>
+                    <meta charSet="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    <title>Indicator Not Found - MarketEdge Pro</title>
+                    <link rel="icon" href="/favicon.png" type="image/png" />
+                </Head>
+                {/* Header for Not Found page - consistent with main site header */}
+                <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4 w-full">
+                  <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+                    <Link href="/">
+                      <Image
+                        src="/MainLogo2.png"
+                        alt="MarketProEdge Logo"
+                        width={350}
+                        height={70}
+                        className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
+                        priority
+                      />
+                    </Link>
+                    <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+                      <Link
+                        href="/"
+                        className={`py-1 transition duration-300
+                          text-xs sm:text-sm md:text-base lg:text-base
+                          ${isActive('/') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                        `}
+                      >Home</Link>
+                      <Link
+                        href="/marketpulse"
+                        className={`py-1 transition duration-300
+                          text-xs sm:text-sm md:text-base lg:text-base
+                          ${isActive('/marketpulse') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                        `}
+                      >MarketPulse</Link>
+                      <Link
+                        href="/indicators"
+                        className={`py-1 transition duration-300
+                          text-xs sm:text-sm md:text-base lg:text-base
+                          ${isActive('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                        `}
+                      >Indicators</Link>
+                      <Link
+                        href="/blog"
+                        className={`py-1 transition duration-300
+                          text-xs sm:text-sm md:text-base lg:text-base
+                          ${isActive('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                        `}
+                      >Blog</Link>
+                    </nav>
+                  </div>
+                </header>
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">Indicator Not Found</h1>
+                <p className="text-lg text-gray-700 mb-6">The indicator you are looking for does not exist.</p>
+                <Link href="/indicators" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out">
+                    &larr; Back to Indicators
+                </Link>
+                {/* Footer for Not Found page - consistent with main site footer */}
+                <footer className="bg-gray-800 text-white py-6 mt-12 w-full">
+                  <div className="container mx-auto px-6 text-center">
+                    <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
+                    <div className="mt-2 space-x-4 text-sm">
+                      <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+                      <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
+                      <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+                      <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+                  </div>
+                </footer>
+            </div>
+        );
+    }
+
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-100 font-inter">
             <Head>
@@ -110,28 +181,57 @@ export default function IndicatorDetail({ indicator }) {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                 <title>{indicator.name} - MarketEdge Pro</title>
                 <meta name="description" content={indicator.shortDescription} />
-                {/* Custom Favicon from /public directory (PNG) */}
                 <link rel="icon" href="/favicon.png" type="image/png" />
-                {/* Font link removed from here, now in _document.js */}
             </Head>
 
+            {/* Header Section - Now directly embedded with aggressive responsive classes */}
             <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-                <div className="container mx-auto px-6 flex items-center justify-between">
-                    <Image
-                        src="/MainLogo2.png"
-                        alt="MarketProEdge Logo"
-                        width={350}
-                        height={70}
-                        className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
-                        priority
-                    />
-                    <nav className="space-x-4">
-                        <Link href="/" className="hover:text-blue-200 transition duration-300">Home</Link>
-                        <Link href="/marketpulse" className="hover:text-blue-200 transition duration-300">MarketPulse</Link>
-                        <Link href="/indicators" className="text-white border-b-2 border-white pb-1">Indicators</Link>
-                        <Link href="/blog" className="hover:text-blue-200 transition duration-300">Blog</Link>
-                    </nav>
-                </div>
+              <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+                <Link href="/">
+                  <Image
+                    src="/MainLogo2.png"
+                    alt="MarketProEdge Logo"
+                    width={350}
+                    height={70}
+                    // ADJUSTED: Even smaller logo on sm/md for more nav space
+                    className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
+                    priority
+                  />
+                </Link>
+
+                {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
+                {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
+                <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
+                  <Link
+                    href="/"
+                    className={`py-1 transition duration-300
+                      text-xs sm:text-sm md:text-base lg:text-base {/* Smaller font sizes */}
+                      ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                    `}
+                  >Home</Link>
+                  <Link
+                    href="/marketpulse"
+                    className={`py-1 transition duration-300
+                      text-xs sm:text-sm md:text-base lg:text-base
+                      ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                    `}
+                  >MarketPulse</Link>
+                  <Link
+                    href="/indicators"
+                    className={`py-1 transition duration-300
+                      text-xs sm:text-sm md:text-base lg:text-base
+                      ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                    `}
+                  >Indicators</Link>
+                  <Link
+                    href="/blog"
+                    className={`py-1 transition duration-300
+                      text-xs sm:text-sm md:text-base lg:text-base
+                      ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                    `}
+                  >Blog</Link>
+                </nav>
+              </div>
             </header>
 
             <main className="container mx-auto py-12 px-6 lg:px-8">
@@ -278,17 +378,18 @@ export default function IndicatorDetail({ indicator }) {
                 </section>
             </main>
 
+            {/* Standard Footer Component */}
             <footer className="bg-gray-800 text-white py-6 mt-12">
-                <div className="container mx-auto px-6 text-center">
-                    <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
-                    <div className="mt-2 space-x-4 text-sm">
-                        <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
-                        <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
-                        <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
-                        <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+              <div className="container mx-auto px-6 text-center">
+                <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
+                <div className="mt-2 space-x-4 text-sm">
+                  <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+                  <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
+                  <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+                  <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
                 </div>
+                <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+              </div>
             </footer>
         </div>
     );

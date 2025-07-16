@@ -1,6 +1,8 @@
 // pages/blog/[slug].js
 // Dynamic route for individual blog posts, fetching content from Sanity, with Firebase-like design.
 // Now includes auto-generated Table of Contents embedded within the post content, minimized by default.
+// Updated: Header is directly embedded with responsive classes to prevent scrollbar/overflow.
+
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image'; // Import Next.js Image component
@@ -103,13 +105,69 @@ export default function BlogPost({ post }) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Post Not Found</title>
           <link rel="icon" href="/favicon.png" type="image/png" />
-          
         </Head>
+        {/* Header for Not Found page - simplified */}
+        <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4 w-full">
+          <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+            <Link href="/">
+              <Image
+                src="/MainLogo2.png"
+                alt="MarketProEdge Logo"
+                width={350}
+                height={70}
+                className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
+                priority
+              />
+            </Link>
+            <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+              <Link
+                href="/"
+                className={`py-1 transition duration-300
+                  text-xs sm:text-sm md:text-base lg:text-base
+                  ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                `}
+              >Home</Link>
+              <Link
+                href="/marketpulse"
+                className={`py-1 transition duration-300
+                  text-xs sm:text-sm md:text-base lg:text-base
+                  ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                `}
+              >MarketPulse</Link>
+              <Link
+                href="/indicators"
+                className={`py-1 transition duration-300
+                  text-xs sm:text-sm md:text-base lg:text-base
+                  ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                `}
+              >Indicators</Link>
+              <Link
+                href="/blog"
+                className={`py-1 transition duration-300
+                  text-xs sm:text-sm md:text-base lg:text-base
+                  ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+                `}
+              >Blog</Link>
+            </nav>
+          </div>
+        </header>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Blog Post Not Found</h1>
         <p className="text-lg text-gray-700 mb-6">The blog post you are looking for does not exist.</p>
         <Link href="/blog" className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out">
             &larr; Back to Blog
         </Link>
+        <footer className="bg-gray-800 text-white py-6 mt-12 w-full">
+          <div className="container mx-auto px-6 text-center">
+            <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
+            <div className="mt-2 space-x-4 text-sm">
+              <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+              <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
+              <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+              <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
+            </div>
+            <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+          </div>
+        </footer>
       </div>
     );
   }
@@ -122,7 +180,7 @@ export default function BlogPost({ post }) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{post.title} - MarketEdge Pro Blog</title>
         <meta name="description" content={post.description} />
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%2230%22 width=%2220%22 height=%2260%22 fill=%22%234f46e5%22/><rect x=%2240%22 y=%2220%22 width=%2220%22 height=%2270%22 fill=%22%233b82f6%22/><rect x=%2270%22 y=%2240%22 width=%2220%22 height=%2250%22 fill=%22%234f46e5%22/></svg>" />
+        <link rel="icon" href="/favicon.png" type="image/png" /> {/* Changed to /favicon.png */}
         
         {/* Custom styles to override prose for images */}
         <style jsx>{`
@@ -141,23 +199,52 @@ export default function BlogPost({ post }) {
         `}</style>
       </Head>
 
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg p-4">
-        <div className="container mx-auto flex items-center">
-          <Image
-            src="/MainLogo2.png"
-            alt="MarketProEdge Logo"
-            width={350}
-            height={70}
-            className="w-[200px] sm:w-[250px] md:w-[300px] lg:w-[350px] h-auto object-contain"
-            priority
-          />
-          <nav className="ml-auto">
-            <ul className="flex space-x-6 items-center">
-              <li><Link href="/" className="text-white hover:text-blue-200 transition duration-300">Home</Link></li>
-              <li><Link href="/marketpulse" className="text-white hover:text-blue-200 transition duration-300">MarketPulse</Link></li>
-              <li><Link href="/indicators" className="text-white hover:text-blue-200 transition duration-300">Indicators</Link></li>
-              <li><Link href="/blog" className="text-white font-semibold border-b-2 border-white pb-1">Blog</Link></li>
-            </ul>
+      {/* Header Section - Now directly embedded with aggressive responsive classes */}
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
+        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+          <Link href="/">
+            <Image
+              src="/MainLogo2.png"
+              alt="MarketProEdge Logo"
+              width={350}
+              height={70}
+              // ADJUSTED: Even smaller logo on sm/md for more nav space
+              className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
+              priority
+            />
+          </Link>
+
+          {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
+          {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
+          <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
+            <Link
+              href="/"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Home</Link>
+            <Link
+              href="/marketpulse"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >MarketPulse</Link>
+            <Link
+              href="/indicators"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Indicators</Link>
+            <Link
+              href="/blog"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Blog</Link>
           </nav>
         </div>
       </header>
@@ -167,7 +254,7 @@ export default function BlogPost({ post }) {
         <p className="text-gray-700 text-base mb-2">Published: {new Date(post.publishedAt).toLocaleDateString()}</p>
         <p className="text-gray-700 text-base">Author: {post.author}</p>
         <Link href="/blog" className="inline-flex items-center px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 mt-6">
-          &larr; Back to Blog
+            &larr; Back to Blog
         </Link>
 
         {/* Main blog post content area, centered and constrained */}
@@ -248,15 +335,16 @@ export default function BlogPost({ post }) {
         </section>
       </main>
 
-      <footer className="bg-gray-800 text-white p-6 mt-auto">
-        <div className="container mx-auto text-center">
+      <footer className="bg-gray-800 text-white py-6 mt-12">
+        <div className="container mx-auto px-6 text-center">
           <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
-          <div className="flex justify-center space-x-4 mt-2 text-sm">
-            <Link href="/about" className="text-gray-400 hover:text-white transition duration-300">About</Link>
-            <Link href="/contact" className="text-gray-400 hover:text-white transition duration-300">Contact</Link>
-            <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition duration-300">Privacy Policy</Link>
+          <div className="mt-2 space-x-4 text-sm">
+            <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+            <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
+            <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+            <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
           </div>
-          <p className="text-xs mt-2 text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+          <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
     </div>
