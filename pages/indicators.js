@@ -1,11 +1,11 @@
 // pages/indicators.js
 // Displays a list of trading indicators fetched from Sanity.
-// Updated: Integrated the standard responsive header and footer for consistency across the site.
+// Updated: Header and footer are now consistent with other main pages for mobile responsiveness.
 
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { sanityClient, urlFor } from '../lib/sanity.client';
+import { sanityClient, urlFor } from '../lib/sanity.client'; // Path is correct if indicators.js is directly in pages/
 
 export default function Indicators({ indicators }) {
   return (
@@ -15,14 +15,11 @@ export default function Indicators({ indicators }) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Our Trading Indicators - MarketEdge Pro</title>
         <meta name="description" content="Explore MarketEdge Pro's powerful trading indicators designed for various platforms." />
-        {/* Custom Favicon from /public directory (PNG) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-        {/* Font link removed from here, now in _document.js */}
       </Head>
 
-      {/* Standard Header Component */}
+      {/* Header Section - Consistent with MarketPulse */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-        {/* UPDATED: Reduced px for mobile, kept flex items-center justify-between */}
         <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/">
             <Image
@@ -30,17 +27,43 @@ export default function Indicators({ indicators }) {
               alt="MarketProEdge Logo"
               width={350}
               height={70}
-              // UPDATED: Adjusted logo width for better mobile scaling
-              className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[350px] h-auto object-contain"
+              // ADJUSTED: Even smaller logo on sm/md for more nav space
+              className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
               priority
             />
           </Link>
-          {/* UPDATED: Mobile-friendly navigation: horizontal scroll if needed, smaller text */}
-          <nav className="flex flex-nowrap overflow-x-auto whitespace-nowrap -mx-2 px-2 md:space-x-4">
-            <Link href="/" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Home</Link>
-            <Link href="/marketpulse" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">MarketPulse</Link>
-            <Link href="/indicators" className="px-2 py-1 text-white border-b-2 border-white pb-1 text-sm md:text-base">Indicators</Link> {/* Highlight current page */}
-            <Link href="/blog" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Blog</Link>
+
+          {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
+          {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
+          <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
+            <Link
+              href="/"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Home</Link>
+            <Link
+              href="/marketpulse"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >MarketPulse</Link>
+            <Link
+              href="/indicators"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Indicators</Link>
+            <Link
+              href="/blog"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Blog</Link>
           </nav>
         </div>
       </header>
