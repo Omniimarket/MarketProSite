@@ -1,7 +1,7 @@
 // pages/marketpulse.tsx
 // This page replicates the Firebase MarketPulse HTML design,
 // integrating TradingView widgets within a Next.js component.
-// Updated: Header is directly embedded with responsive classes to prevent scrollbar/overflow.
+// Updated: Added CSS to hide the vertical scrollbar specifically for this page.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -163,7 +163,8 @@ export default function MarketPulse() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
+    // Added 'hide-scrollbar' class to the main container
+    <div className="min-h-screen flex flex-col bg-gray-50 font-inter hide-scrollbar">
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -281,6 +282,17 @@ export default function MarketPulse() {
           <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
+
+      {/* Inline styles to hide scrollbar specifically for this page's main container */}
+      <style jsx>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
     </div>
   );
 }
