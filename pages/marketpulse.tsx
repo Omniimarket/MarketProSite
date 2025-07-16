@@ -1,7 +1,8 @@
 // pages/marketpulse.tsx
 // This page replicates the Firebase MarketPulse HTML design,
 // integrating TradingView widgets within a Next.js component.
-// Updated: Added CSS to hide the vertical scrollbar specifically for this page.
+// Updated: Header is directly embedded with responsive classes to prevent scrollbar/overflow.
+// Fixed: TypeScript error "Parameter 'containerRef' implicitly has an 'any' type."
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -10,15 +11,17 @@ import React, { useEffect, useRef } from 'react'; // Import useEffect and useRef
 
 export default function MarketPulse() {
   // Refs for each TradingView widget container
-  const tickerTapeRef = useRef(null);
-  const advancedChartRef = useRef(null);
-  const technicalAnalysisRef = useRef(null);
-  const financialsRef = useRef(null);
-  const economicCalendarRef = useRef(null);
-  const timelineRef = useRef(null);
+  // Explicitly type the refs for TypeScript
+  const tickerTapeRef = useRef<HTMLDivElement>(null);
+  const advancedChartRef = useRef<HTMLDivElement>(null);
+  const technicalAnalysisRef = useRef<HTMLDivElement>(null);
+  const financialsRef = useRef<HTMLDivElement>(null);
+  const economicCalendarRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   // Function to load a TradingView widget
-  const loadTradingViewWidget = (containerRef, scriptSrc, config) => {
+  // Explicitly type containerRef for TypeScript
+  const loadTradingViewWidget = (containerRef: React.MutableRefObject<HTMLDivElement | null>, scriptSrc: string, config: object) => {
     if (containerRef.current) {
       // Clear any existing widget to prevent duplicates on re-renders
       containerRef.current.innerHTML = '';
@@ -34,6 +37,7 @@ export default function MarketPulse() {
       containerRef.current.appendChild(script);
     }
   };
+
 
   // useEffect for Ticker Tape Widget
   useEffect(() => {
