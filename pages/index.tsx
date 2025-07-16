@@ -57,53 +57,63 @@ export default function Home() {
 
       {/* Header Section - Consistent with MarketPulse */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
-          <Link href="/">
-            <Image
-              src="/MainLogo2.png"
-              alt="MarketProEdge Logo"
-              width={350}
-              height={70}
-              // ADJUSTED: Even smaller logo on sm/md for more nav space
-              className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
-              priority
-            />
-          </Link>
+  <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+    <Link href="/">
+      <Image
+        src="/MainLogo2.png"
+        alt="MarketProEdge Logo"
+        width={350}
+        height={70}
+        // ADJUSTED: Even smaller logo on sm/md for more nav space
+        className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
+        priority
+      />
+    </Link>
 
-          {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
-          {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
-          <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
-            <Link
-              href="/"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >Home</Link>
-            <Link
-              href="/marketpulse"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >MarketPulse</Link>
-            <Link
-              href="/indicators"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >Indicators</Link>
-            <Link
-              href="/blog"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >Blog</Link>
-          </nav>
-        </div>
-      </header>
+    {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
+    {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
+    <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
+      <Link
+        href="/"
+        className={`py-1 transition duration-300
+          text-xs sm:text-sm md:text-base lg:text-base
+          ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+        `}
+      >Home</Link>
+      <Link
+        href="/marketpulse"
+        className={`py-1 transition duration-300
+          text-xs sm:text-sm md:text-base lg:text-base
+          ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+        `}
+      >MarketPulse</Link>
+      <Link
+        href="/indicators"
+        className={`py-1 transition duration-300
+          text-xs sm:text-sm md:text-base lg:text-base
+          ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+        `}
+      >Indicators</Link>
+      <Link
+        href="/blog"
+        className={`py-1 transition duration-300
+          text-xs sm:text-sm md:text-base lg:text-base
+          ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+        `}
+      >Blog</Link>
+      {/* NEW: Discord Invite Link in Header */}
+      <a
+        href="https://discord.gg/ubyujKjNkF"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`py-1 transition duration-300
+          text-xs sm:text-sm md:text-base lg:text-base
+          hover:text-blue-200
+        `}
+      >Discord</a>
+    </nav>
+  </div>
+</header>
 
       <main className="flex-grow">
         {/* Hero Section */}
@@ -193,18 +203,21 @@ export default function Home() {
       </main>
 
       {/* Standard Footer Component */}
-      <footer className="bg-gray-800 text-white py-6 mt-12">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
-          <div className="mt-2 space-x-4 text-sm">
-            <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
-            <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
-            <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
-            <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
-          </div>
-          <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
-        </div>
-      </footer>
+<footer className="bg-gray-800 text-white py-6 mt-12">
+  <div className="container mx-auto px-6 text-center">
+    <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>
+    <div className="mt-2 space-x-4 text-sm">
+      <Link href="/about" className="hover:text-gray-300 transition duration-300">About</Link>
+      <Link href="/contact" className="hover:text-gray-300 transition duration-300">Contact</Link>
+      <Link href="/terms-of-service" className="hover:text-gray-300 transition duration-300">Terms of Service</Link>
+      <Link href="/privacy-policy" className="hover:text-gray-300 transition duration-300">Privacy Policy</Link>
+      {/* NEW: Discord Invite Link */}
+      <a href="https://discord.gg/ubyujKjNkF" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition duration-300">Join Discord</a>
+    </div>
+    <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
+  </div>
+</footer>
+
     </div>
   );
 }
