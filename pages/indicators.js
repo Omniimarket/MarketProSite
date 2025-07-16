@@ -1,21 +1,20 @@
-// pages/indicators.js
-// This page lists all trading indicators, fetching data from Sanity.
+// pages/blog/index.js
+// This page lists all blog posts, fetching data from Sanity, with Firebase-like design.
 // Updated: Standardized header and footer for site consistency and mobile responsiveness.
-// FIXED: Corrected path for sanity.client import.
 
 import Head from 'next/head';
 import Link from 'next/link';
-import Image from 'next/image';
-import { sanityClient, urlFor } from '../lib/sanity.client'; // <-- CHANGED: Adjusted path from '../../lib/sanity.client'
+import Image from 'next/image'; // Import Next.js Image component
+import { sanityClient, urlFor } from '../../lib/sanity.client';
 
-export default function Indicators({ indicators }) {
+export default function Blog({ posts }) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Our Indicators - MarketEdge Pro</title>
-        <meta name="description" content="Explore MarketEdge Pro's powerful trading indicators designed for various market conditions." />
+        <title>Blog - MarketEdge Pro</title>
+        <meta name="description" content="Stay updated with the latest market insights, trading strategies, and news from MarketEdge Pro." />
         <link rel="icon" href="/favicon.png" type="image/png" />
       </Head>
 
@@ -67,20 +66,20 @@ export default function Indicators({ indicators }) {
       </header>
 
       <main className="flex-grow container mx-auto p-6 lg:p-10">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 text-center">Our Indicators</h1>
+        <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 text-center">Our Blog</h1>
         <p className="text-lg md:text-xl text-gray-700 mb-10 text-center max-w-3xl mx-auto">
-          Discover our suite of powerful trading indicators designed to give you an edge in the markets.
+          Stay updated with the latest market insights, trading strategies, and news.
         </p>
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {indicators.map((indicator) => (
-            <div key={indicator.slug.current} className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
-              <Link href={`/indicators/${indicator.slug.current}`}>
-                {indicator.mainImage && (
+          {posts.map((post) => (
+            <div key={post.slug.current} className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+              <Link href={`/blog/${post.slug.current}`}>
+                {post.mainImage && (
                   <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden">
                     <Image
-                      src={urlFor(indicator.mainImage).url()}
-                      alt={indicator.mainImage.alt || indicator.name}
+                      src={urlFor(post.mainImage).url()}
+                      alt={post.mainImage.alt || post.title}
                       layout="fill"
                       objectFit="cover"
                       className="transition-transform duration-300 hover:scale-110"
@@ -89,14 +88,15 @@ export default function Indicators({ indicators }) {
                   </div>
                 )}
                 <div className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{indicator.name}</h2>
-                  <p className="text-gray-700 text-base mb-4 line-clamp-3">{indicator.shortDescription}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-indigo-700">{indicator.price}</span>
-                    <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300 text-sm">
-                      View Details
-                    </button>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2 line-clamp-2">{post.title}</h2>
+                  <p className="text-gray-700 text-base mb-4 line-clamp-3">{post.description}</p>
+                  <div className="flex justify-between items-center text-gray-600 text-sm">
+                    <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                    <span>By {post.author}</span>
                   </div>
+                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300 text-sm w-full">
+                    Read More
+                  </button>
                 </div>
               </Link>
             </div>
@@ -122,11 +122,12 @@ export default function Indicators({ indicators }) {
 }
 
 export async function getStaticProps() {
-  const indicators = await sanityClient.fetch(`*[_type == "indicator"]{
-    name,
+  const posts = await sanityClient.fetch(`*[_type == "post"] | order(publishedAt desc){
+    title,
     slug,
-    shortDescription,
-    price,
+    publishedAt,
+    author,
+    description,
     mainImage {
       asset->{
         _id,
@@ -137,7 +138,7 @@ export async function getStaticProps() {
   }`);
 
   return {
-    props: { indicators },
+    props: { posts },
     revalidate: 60, // Revalidate every 60 seconds
   };
 }
