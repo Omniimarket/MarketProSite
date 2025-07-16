@@ -1,12 +1,15 @@
 // pages/marketpulse.tsx
 // This page replicates the Firebase MarketPulse HTML design,
 // integrating TradingView widgets within a Next.js component.
-// Updated: Header is directly embedded with responsive classes to prevent scrollbar/overflow.
+// Updated: Uses the reusable Header component with simplified import path.
 
 import Head from 'next/head';
-import Link from 'next/link';
-import Image from 'next/image'; // Import Next.js Image component
-import React, { useEffect, useRef } from 'react'; // Import useEffect and useRef
+import Link from 'next/link'; // Keep Link for internal page links in main content/footer
+import Image from 'next/image'; // Keep Image for any images in main content/footer
+import React, { useEffect, useRef } from 'react';
+
+// Import the reusable Header component - simplified path
+import Header from '../components/Header'; // <-- Changed from '../components/Header.tsx' to '../components/Header'
 
 export default function MarketPulse() {
   // Refs for each TradingView widget container
@@ -171,55 +174,8 @@ export default function MarketPulse() {
         <link rel="icon" href="/favicon.png" type="image/png" />
       </Head>
 
-      {/* Header Section - Now directly embedded with aggressive responsive classes */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
-          <Link href="/">
-            <Image
-              src="/MainLogo2.png"
-              alt="MarketProEdge Logo"
-              width={350}
-              height={70}
-              // ADJUSTED: Even smaller logo on sm/md for more nav space
-              className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
-              priority
-            />
-          </Link>
-
-          {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
-          {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
-          <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
-            <Link
-              href="/"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base {/* Smaller font sizes */}
-                ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >Home</Link>
-            <Link
-              href="/marketpulse"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >MarketPulse</Link>
-            <Link
-              href="/indicators"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >Indicators</Link>
-            <Link
-              href="/blog"
-              className={`py-1 transition duration-300
-                text-xs sm:text-sm md:text-base lg:text-base
-                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
-              `}
-            >Blog</Link>
-          </nav>
-        </div>
-      </header>
+      {/* Reusable Header Component */}
+      <Header />
 
       {/* Main Content Area - TradingView Widgets */}
       <main className="flex-grow container mx-auto p-6 lg:p-10 flex flex-col items-center">
