@@ -1,5 +1,7 @@
 // pages/index.tsx
-// Updated: Enhanced header responsiveness for mobile, preventing cutoff.
+// This is the main landing page for MarketEdge Pro.
+// Updated: Header and footer are now consistent with other main pages for mobile responsiveness,
+// preventing scrollbars and using aggressive scaling.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -44,36 +46,61 @@ export default function Home() {
   }, [slides.length]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 font-inter">
+    <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>MarketEdge Pro - Trading Indicators & Market Analysis</title>
+        <title>MarketEdge Pro - Unlock Your Trading Edge</title>
         <meta name="description" content="MarketEdge Pro offers advanced trading indicators, real-time market analysis, and expert insights to help you make smarter trading decisions." />
-        {/* Custom Favicon from /public directory (PNG) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
-        {/* Font link removed from here, now in _document.js */}
       </Head>
 
+      {/* Header Section - Consistent with MarketPulse */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
-        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between"> {/* Reduced px for mobile */}
+        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/">
             <Image
               src="/MainLogo2.png"
               alt="MarketProEdge Logo"
               width={350}
               height={70}
-              // Adjusted logo width for better mobile scaling
-              className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[350px] h-auto object-contain"
+              // ADJUSTED: Even smaller logo on sm/md for more nav space
+              className="w-[120px] sm:w-[150px] md:w-[200px] lg:w-[350px] h-auto object-contain"
               priority
             />
           </Link>
-          {/* Mobile-friendly navigation: horizontal scroll if needed, smaller text */}
-          <nav className="flex flex-nowrap overflow-x-auto whitespace-nowrap -mx-2 px-2 md:space-x-4">
-            <Link href="/" className="px-2 py-1 text-white border-b-2 border-white pb-1 text-sm md:text-base">Home</Link>
-            <Link href="/marketpulse" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">MarketPulse</Link>
-            <Link href="/indicators" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Indicators</Link>
-            <Link href="/blog" className="px-2 py-1 hover:text-blue-200 transition duration-300 text-sm md:text-base">Blog</Link>
+
+          {/* Navigation - Adjusted for aggressive scaling to fit on one line */}
+          {/* Removed overflow-x-auto and whitespace-nowrap to avoid scrollbar */}
+          <nav className="flex items-center space-x-2 sm:space-x-3 md:space-x-4"> {/* Tighter spacing */}
+            <Link
+              href="/"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname === '/' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Home</Link>
+            <Link
+              href="/marketpulse"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname === '/marketpulse' ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >MarketPulse</Link>
+            <Link
+              href="/indicators"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/indicators') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Indicators</Link>
+            <Link
+              href="/blog"
+              className={`py-1 transition duration-300
+                text-xs sm:text-sm md:text-base lg:text-base
+                ${typeof window !== 'undefined' && window.location.pathname.startsWith('/blog') ? 'text-white border-b-2 border-white pb-1' : 'hover:text-blue-200'}
+              `}
+            >Blog</Link>
           </nav>
         </div>
       </header>
@@ -165,6 +192,7 @@ export default function Home() {
         </section>
       </main>
 
+      {/* Standard Footer Component */}
       <footer className="bg-gray-800 text-white py-6 mt-12">
         <div className="container mx-auto px-6 text-center">
           <p className="text-sm">&copy; {new Date().getFullYear()} MarketEdge Pro. All rights reserved.</p>

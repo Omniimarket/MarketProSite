@@ -5,7 +5,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image'; // Import Next.js Image component
-import { sanityClient, urlFor } from '../../lib/sanity.client';
+import { sanityClient, urlFor } from '../lib/sanity.client';
 
 export default function Blog({ posts }) {
   return (
