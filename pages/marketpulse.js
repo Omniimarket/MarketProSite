@@ -1,17 +1,14 @@
 // pages/marketpulse.tsx
 // This page replicates the Firebase MarketPulse HTML design,
 // integrating TradingView widgets within a Next.js component.
-// Updated: Implemented a responsive hamburger menu for mobile navigation.
+// Updated: Integrated the standard responsive header and footer for consistency across the site.
 
 import Head from 'next/head';
 import Link from 'next/link';
-import Image from 'next/image';
-import React, { useEffect, useRef, useState } from 'react'; // Import useState
+import Image from 'next/image'; // Import Next.js Image component
+import React, { useEffect, useRef } from 'react'; // Import useEffect and useRef
 
 export default function MarketPulse() {
-  // State for mobile menu visibility
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   // Refs for each TradingView widget container
   const tickerTapeRef = useRef(null);
   const advancedChartRef = useRef(null);
@@ -23,14 +20,18 @@ export default function MarketPulse() {
   // Function to load a TradingView widget
   const loadTradingViewWidget = (containerRef, scriptSrc, config) => {
     if (containerRef.current) {
-      containerRef.current.innerHTML = ''; // Clear any existing widget
+      // Clear any existing widget to prevent duplicates on re-renders
+      containerRef.current.innerHTML = '';
 
       const script = document.createElement('script');
       script.src = scriptSrc;
       script.async = true;
       script.type = 'text/javascript';
-      script.setAttribute('data-config', JSON.stringify(config)); // Pass config as data attribute
+      // Use a data attribute to store the config, then the widget script can read it
+      // This is a more robust way than innerHTML for script contents
+      script.setAttribute('data-config', JSON.stringify(config));
 
+      // Append the script to the widget container
       containerRef.current.appendChild(script);
     }
   };
@@ -163,15 +164,19 @@ export default function MarketPulse() {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 font-inter">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>MarketEdge Pro - MarketPulse</title>
+        {/* Favicon - Three Bars (from original HTML) */}
         <link rel="icon" href="/favicon.png" type="image/png" />
+        {/* Font link removed from here, now in _document.js */}
       </Head>
 
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4 relative z-10"> {/* Added relative z-10 */}
+      {/* Standard Header Component */}
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md py-4">
+        {/* UPDATED: Reduced px for mobile, kept flex items-center justify-between */}
         <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/">
             <Image
@@ -179,51 +184,22 @@ export default function MarketPulse() {
               alt="MarketProEdge Logo"
               width={350}
               height={70}
+              // UPDATED: Adjusted logo width for better mobile scaling
               className="w-[150px] sm:w-[200px] md:w-[250px] lg:w-[350px] h-auto object-contain"
               priority
             />
           </Link>
-
-          {/* Hamburger Menu Button (visible on mobile, hidden on larger screens) */}
-          <button
-            className="md:hidden text-white focus:outline-none"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle navigation menu"
-          >
-            {isMenuOpen ? (
-              // Close icon (X)
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              // Hamburger icon
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-            )}
-          </button>
-
-          {/* Desktop Navigation (visible on larger screens, hidden on mobile) */}
-          <nav className="hidden md:flex space-x-4">
-            <Link href="/" className="hover:text-blue-200 transition duration-300">Home</Link>
-            <Link href="/marketpulse" className="text-white border-b-2 border-white pb-1">MarketPulse</Link>
-            <Link href="/indicators" className="hover:text-blue-200 transition duration-300">Indicators</Link>
-            <Link href="/blog" className="hover:text-blue-200 transition duration-300">Blog</Link>
+          {/* UPDATED: Mobile-friendly navigation: horizontal scroll if needed, smaller text */}
+          {/* Note: The original nav used <ul><li>, so we adapt the classes for that structure */}
+          <nav className="flex flex-nowrap overflow-x-auto whitespace-nowrap -mx-2 px-2 md:space-x-4">
+            <ul className="flex space-x-2 md:space-x-4 items-center"> {/* Added space-x-2 for smaller mobile gap */}
+              <li><Link href="/" className="px-2 py-1 text-white hover:text-blue-200 transition duration-300 text-sm md:text-base">Home</Link></li>
+              <li><Link href="/marketpulse" className="px-2 py-1 text-white font-semibold border-b-2 border-white pb-1 text-sm md:text-base">MarketPulse</Link></li> {/* Highlight current page */}
+              <li><Link href="/indicators" className="px-2 py-1 text-white hover:text-blue-200 transition duration-300 text-sm md:text-base">Indicators</Link></li>
+              <li><Link href="/blog" className="px-2 py-1 text-white hover:text-blue-200 transition duration-300 text-sm md:text-base">Blog</Link></li>
+            </ul>
           </nav>
         </div>
-
-        {/* Mobile Navigation (visible when menu is open, hidden otherwise) */}
-        {/* Added dynamic classes for opening/closing animation and background */}
-        <nav className={`md:hidden absolute top-full left-0 w-full bg-indigo-700 bg-opacity-95 shadow-lg transform transition-all duration-300 ease-in-out ${
-          isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-        }`}>
-          <ul className="flex flex-col items-center py-4 space-y-4">
-            <li><Link href="/" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white hover:bg-blue-600 transition duration-300">Home</Link></li>
-            <li><Link href="/marketpulse" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white border-b-2 border-white pb-1">MarketPulse</Link></li>
-            <li><Link href="/indicators" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white hover:bg-blue-600 transition duration-300">Indicators</Link></li>
-            <li><Link href="/blog" onClick={() => setIsMenuOpen(false)} className="block w-full text-center py-2 text-white hover:bg-blue-600 transition duration-300">Blog</Link></li>
-          </ul>
-        </nav>
       </header>
 
       {/* Main Content Area - TradingView Widgets */}
@@ -287,8 +263,26 @@ export default function MarketPulse() {
         </div>
       </footer>
 
-      {/* Removed custom scrollbar styles from here, as they are likely better placed globally */}
-      {/* If you still want custom scrollbars, consider adding them to your global CSS file (e.g., styles/globals.css) */}
+      {/* Inline styles from original HTML (excluding scrollbar and message-box which should be global) */}
+      <style jsx>{`
+        /* Custom scrollbar for better aesthetics - if not already in globals.css */
+        /* If these are already in styles/globals.css, you can remove them here */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+            cursor: pointer;
+        }
+      `}</style>
     </div>
   );
 }
