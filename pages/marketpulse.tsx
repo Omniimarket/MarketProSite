@@ -40,7 +40,6 @@ interface MarketPulseProps {
 
 export default function MarketPulse({ news }: MarketPulseProps) {
   // Refs for each TradingView widget container - ONLY TWO WIDGETS
-  // These refs will now point to the outermost 'tradingview-widget-container' div
   const tickerTapeRef = useRef<HTMLDivElement>(null);
   const advancedChartRef = useRef<HTMLDivElement>(null);
 
@@ -65,24 +64,40 @@ export default function MarketPulse({ news }: MarketPulseProps) {
     const fetchAiSummary = async () => {
       setIsLoadingSummary(true);
       try {
-        const response = await fetch('/api/generate-summary'); // Call the new API route
+        // Send the news data to the new API route
+        const response = await fetch('/api/generate-ai-summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ news: news.slice(0, 10).map(article => ({ title: article.title, description: article.description })) }), // Send top 10 articles
+        });
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
         }
         const data = await response.json();
         setAiSummary(data.aiSummary);
         setSummaryLastUpdated(data.summaryLastUpdated);
       } catch (error) {
         console.error("Failed to fetch AI summary:", error);
-        setAiSummary("Failed to load today's market summary. Please try again later.");
+        setAiSummary(`Failed to load today's market summary. Error: ${(error as Error).message || 'Unknown error'}. Please try again later.`);
         setSummaryLastUpdated("N/A");
       } finally {
         setIsLoadingSummary(false);
       }
     };
 
-    fetchAiSummary();
-  }, []); // Empty dependency array means this runs once on component mount
+    // Only fetch if news data is available and summary hasn't been fetched yet
+    if (news.length > 0 && aiSummary === '') {
+      fetchAiSummary();
+    } else if (news.length === 0) {
+      setAiSummary("No news articles available to generate a summary.");
+      setSummaryLastUpdated("N/A");
+      setIsLoadingSummary(false);
+    }
+  }, [news, aiSummary]); // Dependency on news ensures it runs after news is loaded
 
 
   // State for the floating article panel
@@ -102,7 +117,6 @@ export default function MarketPulse({ news }: MarketPulseProps) {
   };
 
   // Function to load a TradingView widget by appending only the script tag
-  // The static HTML structure for the widget container is now in the JSX.
   const loadTradingViewWidget = (containerRef: React.MutableRefObject<HTMLDivElement | null>, scriptSrc: string, config: object, innerContainerId: string) => {
     if (containerRef.current) {
       // Remove any existing script to prevent duplicates on re-renders
@@ -111,19 +125,13 @@ export default function MarketPulse({ news }: MarketPulseProps) {
         existingScript.remove();
       }
 
-      // The TradingView script will find its container by the 'container' property in the config.
-      // We ensure the inner div has the correct ID.
-
       const script = document.createElement('script');
       script.src = scriptSrc;
       script.async = true;
       script.type = 'text/javascript';
 
-      // Place the JSON configuration directly as the innerHTML of the script tag.
-      // IMPORTANT: Add the 'container' property to the config, pointing to the inner div's ID.
       script.innerHTML = JSON.stringify({ ...config, container: innerContainerId });
 
-      // Append the script to the main container div (which holds the inner widget div)
       containerRef.current.appendChild(script);
     }
   };
@@ -166,7 +174,6 @@ export default function MarketPulse({ news }: MarketPulseProps) {
         "colorTheme": "light",
         "locale": "en"
       };
-      // Pass the ID of the inner widget div to the load function
       loadTradingViewWidget(tickerTapeRef, "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js", config, "ticker-tape-inner-widget");
     }
   }, []);
@@ -174,11 +181,11 @@ export default function MarketPulse({ news }: MarketPulseProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const config = {
-        "allow_symbol_change": true, // This is the key property for symbol search
+        "allow_symbol_change": true,
         "calendar": false,
         "details": false,
         "hide_side_toolbar": true,
-        "hide_top_toolbar": false, // IMPORTANT: Set to false to show the top toolbar with symbol search
+        "hide_top_toolbar": false,
         "hide_legend": false,
         "hide_volume": false,
         "hotlist": false,
@@ -186,7 +193,7 @@ export default function MarketPulse({ news }: MarketPulseProps) {
         "locale": "en",
         "save_image": true,
         "style": "1",
-        "symbol": "NASDAQ:AAPL", // Initial symbol
+        "symbol": "NASDAQ:AAPL",
         "theme": "dark",
         "timezone": "Etc/UTC",
         "backgroundColor": "#0F0F0F",
@@ -197,7 +204,6 @@ export default function MarketPulse({ news }: MarketPulseProps) {
         "studies": [],
         "autosize": true
       };
-      // Pass the ID of the inner widget div to the load function
       loadTradingViewWidget(advancedChartRef, "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js", config, "advanced-chart-inner-widget");
     }
   }, []);
@@ -378,7 +384,6 @@ export default function MarketPulse({ news }: MarketPulseProps) {
               `}
             >Discord</a>
           </div>
-          {/* Fix: Escaped apostrophe in the disclaimer text */}
           <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
@@ -449,7 +454,7 @@ export async function getServerSideProps() {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`Failed to fetch RSS feed from ${feed.sourceName}: ${response.status} - ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
+          console.error(`getServerSideProps: Failed to fetch RSS feed from ${feed.sourceName}: ${response.status} - ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
           return [];
         }
 
@@ -470,11 +475,11 @@ export async function getServerSideProps() {
             sourceName: feed.sourceName,
           }));
         } else {
-          console.warn(`RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
+          console.warn(`getServerSideProps: RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
           return [];
         }
       } catch (error) {
-        console.error(`Error fetching or parsing RSS feed from ${feed.sourceName}:`, error);
+        console.error(`getServerSideProps: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error);
         return [];
       }
     });
@@ -489,7 +494,7 @@ export async function getServerSideProps() {
     });
 
   } catch (error) {
-    console.error("Error in getServerSideProps fetching multiple RSS feeds:", error);
+    console.error("getServerSideProps: Error fetching multiple RSS feeds:", error);
   }
 
   return {
