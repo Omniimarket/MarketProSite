@@ -1,8 +1,8 @@
 // pages/marketpulse.tsx
 // This page integrates TradingView widgets, fetches news from multiple RSS feeds,
 // and includes an AI-generated daily market summary using Gemini 2.0 Flash.
-// Updated: RSS feed fetching in getServerSideProps now includes a timeout for performance.
-// FIX: Resolved 'Unexpected any' TypeScript error in catch block.
+// Updated: ALL data fetching (RSS and AI Summary) moved to client-side for immediate page load.
+// IMPORTANT: Added temporary console.logs for debugging RSS news fetching.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -32,14 +32,8 @@ interface RssItem {
   category?: string;
 }
 
-
-// Define the props for the MarketPulse component
-interface MarketPulseProps {
-  news: RssArticle[];
-  // aiSummary and summaryLastUpdated are now fetched client-side
-}
-
-export default function MarketPulse({ news }: MarketPulseProps) {
+// MarketPulse component no longer receives props from getServerSideProps
+export default function MarketPulse() {
   // Refs for each TradingView widget container - ONLY TWO WIDGETS
   const tickerTapeRef = useRef<HTMLDivElement>(null);
   const advancedChartRef = useRef<HTMLDivElement>(null);
@@ -47,10 +41,16 @@ export default function MarketPulse({ news }: MarketPulseProps) {
   // State for current page path to fix hydration mismatch
   const [currentPage, setCurrentPage] = useState('');
 
+  // State for RSS News, now managed client-side
+  const [news, setNews] = useState<RssArticle[]>([]);
+  const [isLoadingNews, setIsLoadingNews] = useState<boolean>(true);
+  const [newsError, setNewsError] = useState<string | null>(null);
+
   // State for AI Summary, now managed client-side
   const [aiSummary, setAiSummary] = useState<string>('');
   const [summaryLastUpdated, setSummaryLastUpdated] = useState<string>('');
   const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(true);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -60,12 +60,122 @@ export default function MarketPulse({ news }: MarketPulseProps) {
     }
   }, []);
 
-  // useEffect to fetch AI Summary client-side
+  // --- NEW: useEffect to fetch RSS News client-side ---
+  useEffect(() => {
+    const fetchRssNews = async () => {
+      console.log("DEBUG: Starting RSS news fetch...");
+      setIsLoadingNews(true);
+      setNewsError(null);
+      let allFetchedNews: RssArticle[] = [];
+
+      const rssFeeds = [
+        { url: 'https://www.nasdaq.com/feed/rssoutbound?category=Stocks', sourceName: 'Nasdaq.com' },
+        { url: 'https://www.investing.com/rss/news_25.rss', sourceName: 'Investing.com' },
+      ];
+
+      const FETCH_TIMEOUT_MS = 10000; // Increased to 10 seconds timeout for RSS fetches
+
+      try {
+        const fetchPromises = rssFeeds.map(async (feed) => {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            console.warn(`DEBUG: Fetch to ${feed.sourceName} timed out, aborting.`);
+            controller.abort();
+          }, FETCH_TIMEOUT_MS); // Set timeout
+
+          try {
+            console.log(`DEBUG: Attempting to fetch from ${feed.sourceName} (${feed.url})...`);
+            const response = await fetch(feed.url, { signal: controller.signal });
+            clearTimeout(timeoutId); // Clear timeout if fetch completes in time
+            console.log(`DEBUG: Response status for ${feed.sourceName}: ${response.status}`);
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`Client-side RSS Fetch: Failed to fetch RSS feed from ${feed.sourceName}: ${response.status} - ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
+              return [];
+            }
+
+            const xmlText = await response.text();
+            console.log(`DEBUG: Successfully fetched XML from ${feed.sourceName}. Parsing...`);
+            const result = await parseStringPromise(xmlText, {
+              explicitArray: false,
+              ignoreAttrs: true,
+              trim: true,
+              charkey: '#text',
+            });
+
+            if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
+              console.log(`DEBUG: Successfully parsed ${result.rss.channel.item.length} items from ${feed.sourceName}.`);
+              return result.rss.channel.item.map((item: RssItem) => ({
+                title: item.title || 'No Title',
+                link: item.link || '#',
+                description: item.description || 'No description available.',
+                pubDate: item.pubDate || '',
+                sourceName: feed.sourceName,
+              }));
+            } else {
+              console.warn(`Client-side RSS Fetch: RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
+              return [];
+            }
+          } catch (error: unknown) {
+            clearTimeout(timeoutId); // Ensure timeout is cleared even on error
+            if (error instanceof Error && error.name === 'AbortError') {
+              console.error(`Client-side RSS Fetch: Fetch to ${feed.sourceName} timed out after ${FETCH_TIMEOUT_MS / 1000} seconds.`);
+            } else if (error instanceof Error) {
+              console.error(`Client-side RSS Fetch: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error.message);
+            } else {
+              console.error(`Client-side RSS Fetch: An unknown error occurred fetching or parsing RSS feed from ${feed.sourceName}:`, error);
+            }
+            return [];
+          }
+        });
+
+        const results = await Promise.all(fetchPromises);
+        allFetchedNews = results.flat();
+
+        allFetchedNews.sort((a, b) => {
+          const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+          const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+          return dateB - dateA;
+        });
+
+        setNews(allFetchedNews);
+        console.log(`DEBUG: Total news articles fetched: ${allFetchedNews.length}`);
+      } catch (error: unknown) {
+        console.error("Client-side RSS Fetch: Top-level error fetching multiple RSS feeds:", error);
+        if (error instanceof Error) {
+            setNewsError(`Failed to load news: ${error.message}`);
+        } else {
+            setNewsError("Failed to load news due to an unknown error.");
+        }
+      } finally {
+        setIsLoadingNews(false);
+        console.log("DEBUG: Finished RSS news fetch.");
+      }
+    };
+
+    fetchRssNews();
+  }, []); // Empty dependency array means this runs once on component mount
+
+  // --- EXISTING: useEffect to fetch AI Summary client-side, now depends on news ---
   useEffect(() => {
     const fetchAiSummary = async () => {
+      console.log("DEBUG: Starting AI summary fetch...");
       setIsLoadingSummary(true);
+      setSummaryError(null); // Clear previous summary errors
       try {
+        if (news.length === 0) {
+          // Only set a message if news loading is complete and there's no news
+          if (!isLoadingNews && newsError === null) {
+            setAiSummary("No news articles available to generate a summary.");
+            setSummaryLastUpdated("N/A");
+          }
+          setIsLoadingSummary(false);
+          console.log("DEBUG: No news to generate summary, skipping AI call.");
+          return;
+        }
         // Send the news data to the new API route
+        console.log("DEBUG: Sending news data to /api/generate-ai-summary...");
         const response = await fetch('/api/generate-ai-summary', {
           method: 'POST',
           headers: {
@@ -74,6 +184,8 @@ export default function MarketPulse({ news }: MarketPulseProps) {
           body: JSON.stringify({ news: news.slice(0, 10).map(article => ({ title: article.title, description: article.description })) }), // Send top 10 articles
         });
 
+        console.log(`DEBUG: Response status from /api/generate-ai-summary: ${response.status}`);
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
@@ -81,24 +193,23 @@ export default function MarketPulse({ news }: MarketPulseProps) {
         const data = await response.json();
         setAiSummary(data.aiSummary);
         setSummaryLastUpdated(data.summaryLastUpdated);
+        console.log("DEBUG: AI summary fetched successfully.");
       } catch (error) {
         console.error("Failed to fetch AI summary:", error);
-        setAiSummary(`Failed to load today's market summary. Error: ${(error as Error).message || 'Unknown error'}. Please try again later.`);
+        setSummaryError(`Failed to load today's market summary. Error: ${(error as Error).message || 'Unknown error'}. Please try again later.`);
+        setAiSummary(''); // Clear summary on error
         setSummaryLastUpdated("N/A");
       } finally {
         setIsLoadingSummary(false);
+        console.log("DEBUG: Finished AI summary fetch.");
       }
     };
 
-    // Only fetch if news data is available and summary hasn't been fetched yet
-    if (news.length > 0 && aiSummary === '') {
+    // Only fetch AI summary if news has finished loading and no news errors occurred
+    if (!isLoadingNews && newsError === null) {
       fetchAiSummary();
-    } else if (news.length === 0) {
-      setAiSummary("No news articles available to generate a summary.");
-      setSummaryLastUpdated("N/A");
-      setIsLoadingSummary(false);
     }
-  }, [news, aiSummary]); // Dependency on news ensures it runs after news is loaded
+  }, [news, isLoadingNews, newsError]); // Depend on news, isLoadingNews, and newsError
 
 
   // State for the floating article panel
@@ -297,6 +408,8 @@ export default function MarketPulse({ news }: MarketPulseProps) {
             <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Daily Market Snapshot (AI-Powered)</h2>
             {isLoadingSummary ? (
                 <p className="text-lg text-gray-500 text-center">Loading today&apos;s market summary...</p>
+            ) : summaryError ? (
+                <p className="text-lg text-red-600 text-center">{summaryError}</p>
             ) : aiSummary ? (
                 <>
                     <p className="text-lg text-gray-700 leading-relaxed text-center max-w-3xl mx-auto">
@@ -307,7 +420,7 @@ export default function MarketPulse({ news }: MarketPulseProps) {
                     </p>
                 </>
             ) : (
-                <p className="text-lg text-gray-500 text-center">Failed to load market summary.</p>
+                <p className="text-lg text-gray-500 text-center">No market summary available.</p>
             )}
         </section>
 
@@ -331,7 +444,11 @@ export default function MarketPulse({ news }: MarketPulseProps) {
         {/* Latest Market News Section (from multiple RSS feeds) */}
         <section className="bg-white rounded-xl shadow-2xl p-8 w-full mb-8 mt-8">
           <h2 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">Latest Market News</h2>
-          {news.length === 0 ? (
+          {isLoadingNews ? (
+            <div className="text-center text-gray-600 text-lg">Loading news articles...</div>
+          ) : newsError ? (
+            <div className="text-center text-red-600 text-lg">{newsError}</div>
+          ) : news.length === 0 ? (
             <div className="text-center text-gray-600 text-lg">No news articles found or failed to load.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -439,85 +556,6 @@ export default function MarketPulse({ news }: MarketPulseProps) {
   );
 }
 
-// getServerSideProps now only fetches news, AI summary is client-side
-export async function getServerSideProps() {
-  let allNews: RssArticle[] = [];
-
-  const rssFeeds = [
-    { url: 'https://www.nasdaq.com/feed/rssoutbound?category=Stocks', sourceName: 'Nasdaq.com' },
-    { url: 'https://www.investing.com/rss/news_25.rss', sourceName: 'Investing.com' },
-  ];
-
-  const FETCH_TIMEOUT_MS = 8000; // 8 seconds timeout for RSS fetches
-
-  try {
-    const fetchPromises = rssFeeds.map(async (feed) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS); // Set timeout
-
-      try {
-        const response = await fetch(feed.url, { signal: controller.signal });
-        clearTimeout(timeoutId); // Clear timeout if fetch completes in time
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`getServerSideProps: Failed to fetch RSS feed from ${feed.sourceName}: ${response.status} - ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
-          return [];
-        }
-
-        const xmlText = await response.text();
-        const result = await parseStringPromise(xmlText, {
-          explicitArray: false,
-          ignoreAttrs: true,
-          trim: true,
-          charkey: '#text',
-        });
-
-        if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
-          return result.rss.channel.item.map((item: RssItem) => ({
-            title: item.title || 'No Title',
-            link: item.link || '#',
-            description: item.description || 'No description available.',
-            pubDate: item.pubDate || '',
-            sourceName: feed.sourceName,
-          }));
-        } else {
-          console.warn(`getServerSideProps: RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
-          return [];
-        }
-      } catch (error: unknown) { // FIX: Changed 'any' to 'unknown'
-        clearTimeout(timeoutId); // Ensure timeout is cleared even on error
-        if (error instanceof Error && error.name === 'AbortError') { // Safely check for AbortError
-          console.error(`getServerSideProps: Fetch to ${feed.sourceName} timed out after ${FETCH_TIMEOUT_MS / 1000} seconds.`);
-        } else if (error instanceof Error) { // Safely check for other Error instances
-          console.error(`getServerSideProps: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error.message);
-        } else { // Handle non-Error objects
-          console.error(`getServerSideProps: An unknown error occurred fetching or parsing RSS feed from ${feed.sourceName}:`, error);
-        }
-        return [];
-      }
-    });
-
-    const results = await Promise.all(fetchPromises);
-    allNews = results.flat();
-
-    allNews.sort((a, b) => {
-      const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-      const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-      return dateB - dateA;
-    });
-
-  } catch (error: unknown) { // FIX: Changed 'any' to 'unknown'
-    console.error("getServerSideProps: Error fetching multiple RSS feeds:", error);
-    if (error instanceof Error) {
-        console.error("getServerSideProps: Top-level error message:", error.message);
-    }
-  }
-
-  return {
-    props: {
-      news: allNews,
-      // aiSummary and summaryLastUpdated are no longer passed as props
-    },
-  };
-}
+// getServerSideProps is no longer needed as all data fetching is client-side
+// Next.js will automatically treat this as a static page (fastest load)
+// and the data will be fetched client-side.
