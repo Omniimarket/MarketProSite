@@ -1,7 +1,7 @@
 // pages/marketpulse.tsx
 // This page integrates TradingView widgets, fetches news from multiple RSS feeds,
 // and includes an AI-generated daily market summary using Gemini 2.0 Flash.
-// Updated: Precise fix for Advanced Chart dimensions, only two TradingView widgets.
+// Updated: AI Summary fetching moved to client-side for faster page load.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -35,19 +35,23 @@ interface RssItem {
 // Define the props for the MarketPulse component
 interface MarketPulseProps {
   news: RssArticle[];
-  aiSummary: string;
-  summaryLastUpdated: string; // New prop for the summary's last updated time
+  // aiSummary and summaryLastUpdated are now fetched client-side, so removed from props
 }
 
-export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: MarketPulseProps) {
+export default function MarketPulse({ news }: MarketPulseProps) {
   // Refs for each TradingView widget container - ONLY TWO WIDGETS
   // These refs will now point to the outermost 'tradingview-widget-container' div
   const tickerTapeRef = useRef<HTMLDivElement>(null);
   const advancedChartRef = useRef<HTMLDivElement>(null);
-  // Removed: technicalAnalysisRef, financialsRef, economicCalendarRef, timelineRef
 
   // State for current page path to fix hydration mismatch
   const [currentPage, setCurrentPage] = useState('');
+
+  // State for AI Summary, now managed client-side
+  const [aiSummary, setAiSummary] = useState<string>('');
+  const [summaryLastUpdated, setSummaryLastUpdated] = useState<string>('');
+  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(true);
+
 
   useEffect(() => {
     // This runs only on the client-side after hydration
@@ -55,6 +59,31 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       setCurrentPage(window.location.pathname);
     }
   }, []);
+
+  // --- NEW: useEffect to fetch AI Summary client-side ---
+  useEffect(() => {
+    const fetchAiSummary = async () => {
+      setIsLoadingSummary(true);
+      try {
+        const response = await fetch('/api/generate-summary'); // Call the new API route
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setAiSummary(data.aiSummary);
+        setSummaryLastUpdated(data.summaryLastUpdated);
+      } catch (error) {
+        console.error("Failed to fetch AI summary:", error);
+        setAiSummary("Failed to load today's market summary. Please try again later.");
+        setSummaryLastUpdated("N/A");
+      } finally {
+        setIsLoadingSummary(false);
+      }
+    };
+
+    fetchAiSummary();
+  }, []); // Empty dependency array means this runs once on component mount
+
 
   // State for the floating article panel
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -259,7 +288,9 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
         {/* AI-Generated Market Summary Section */}
         <section className="bg-white rounded-xl shadow-2xl p-8 w-full mb-8">
             <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Daily Market Snapshot (AI-Powered)</h2>
-            {aiSummary ? (
+            {isLoadingSummary ? (
+                <p className="text-lg text-gray-500 text-center">Loading today&apos;s market summary...</p>
+            ) : aiSummary ? (
                 <>
                     <p className="text-lg text-gray-700 leading-relaxed text-center max-w-3xl mx-auto">
                         {aiSummary}
@@ -269,7 +300,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
                     </p>
                 </>
             ) : (
-                <p className="text-lg text-gray-500 text-center">Loading today&apos;s market summary...</p>
+                <p className="text-lg text-gray-500 text-center">Failed to load market summary.</p>
             )}
         </section>
 
@@ -289,9 +320,6 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
               {/* Script will be injected here by useEffect */}
             </div>
         </section>
-
-        {/* Removed: Technical Analysis and Financials Widgets section */}
-        {/* Removed: Economic Calendar and Timeline Widgets section */}
 
         {/* Latest Market News Section (from multiple RSS feeds) */}
         <section className="bg-white rounded-xl shadow-2xl p-8 w-full mb-8 mt-8">
@@ -405,11 +433,9 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
   );
 }
 
-// getServerSideProps to fetch and parse the RSS feeds and generate AI summary on the server
+// getServerSideProps now only fetches news, AI summary is client-side
 export async function getServerSideProps() {
   let allNews: RssArticle[] = [];
-  let aiSummary: string = '';
-  let summaryLastUpdated: string = '';
 
   const rssFeeds = [
     { url: 'https://www.nasdaq.com/feed/rssoutbound?category=Stocks', sourceName: 'Nasdaq.com' },
@@ -462,86 +488,14 @@ export async function getServerSideProps() {
       return dateB - dateA;
     });
 
-    if (allNews.length > 0) {
-      const topArticles = allNews.slice(0, 10);
-      const newsContentForLLM = topArticles.map(article =>
-        `Title: ${article.title}\nDescription: ${article.description}`
-      ).join('\n\n');
-
-      const prompt = `Summarize the following stock market news articles into a concise, 2-3 paragraph daily market overview. Focus on key events, major company news and overall market sentiment. Do not include a title for the summary.
-
-      News Articles:
-      ${newsContentForLLM}
-      `;
-
-      try {
-        const chatHistory = [];
-        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-        const payload = { contents: chatHistory };
-        const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
-
-        // --- DEBUGGING LOG ---
-        console.log({ geminiApiKeyFromEnv: apiKey });
-        // --- END DEBUGGING LOG ---
-
-        if (!apiKey) {
-            console.error("GEMINI_API_KEY environment variable is not set!");
-            aiSummary = "API key missing. Please set GEMINI_API_KEY in your .env.local file.";
-        } else {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            console.log("Attempting to fetch AI summary from Gemini API...");
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-
-            console.log(`Gemini API Response Status: ${response.status} - ${response.statusText}`);
-            const result = await response.json();
-            console.log("Gemini API Full Response Body:", JSON.stringify(result, null, 2));
-
-            if (response.ok && result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
-              aiSummary = result.candidates[0].content.parts[0].text;
-              console.log("AI summary generated successfully.");
-              summaryLastUpdated = new Date().toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true,
-              });
-            } else {
-              console.error("LLM did not return a valid summary structure or response was not OK.");
-              aiSummary = "Could not generate today's market summary. Please check back later.";
-            }
-        }
-      } catch (llmError: unknown) {
-        console.error("Error generating AI summary:", llmError);
-        if (llmError instanceof Error) {
-            console.error("AI Summary Error Message:", llmError.message);
-        } else if (typeof llmError === 'object' && llmError !== null && 'message' in llmError) {
-            console.error("AI Summary Error Message:", (llmError as { message: string }).message);
-        }
-        aiSummary = "Failed to generate market summary due to an internal error.";
-      }
-    } else {
-      aiSummary = "No news articles available to generate a summary.";
-    }
-
   } catch (error) {
-    console.error("Error in getServerSideProps fetching multiple RSS feeds or generating AI summary:", error);
+    console.error("Error in getServerSideProps fetching multiple RSS feeds:", error);
   }
 
   return {
     props: {
       news: allNews,
-      aiSummary,
-      summaryLastUpdated,
+      // aiSummary and summaryLastUpdated are no longer passed as props
     },
   };
 }
