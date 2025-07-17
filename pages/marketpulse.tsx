@@ -1,14 +1,12 @@
 // pages/marketpulse.tsx
-// This page integrates TradingView widgets, fetches news from multiple RSS feeds,
-// and includes an AI-generated daily market summary using Gemini 2.0 Flash.
-// Updated: ALL data fetching (RSS and AI Summary) moved to client-side for immediate page load.
-// IMPORTANT: Added temporary console.logs for debugging RSS news fetching.
+// This page integrates TradingView widgets, and now fetches both RSS news
+// and the AI-generated daily market summary from a single, consolidated API route.
+// This ensures faster initial page load and bypasses client-side CORS issues for RSS feeds.
 
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
-import { parseStringPromise } from 'xml2js';
 
 // Define the structure for a news article from the RSS feed
 interface RssArticle {
@@ -21,15 +19,12 @@ interface RssArticle {
   sourceName?: string;
 }
 
-// Define the structure for an RSS item from xml2js parsing
-interface RssItem {
-  '#text'?: string; // For cases where content is directly in a text node
-  title?: string;
-  link?: string;
-  description?: string;
-  pubDate?: string;
-  guid?: string;
-  category?: string;
+// Define the structure for the consolidated API response
+interface MarketDataResponse {
+  news: RssArticle[];
+  aiSummary: string;
+  summaryLastUpdated: string;
+  error?: string; // Optional error message from the API
 }
 
 // MarketPulse component no longer receives props from getServerSideProps
@@ -41,16 +36,12 @@ export default function MarketPulse() {
   // State for current page path to fix hydration mismatch
   const [currentPage, setCurrentPage] = useState('');
 
-  // State for RSS News, now managed client-side
+  // State for all market data
   const [news, setNews] = useState<RssArticle[]>([]);
-  const [isLoadingNews, setIsLoadingNews] = useState<boolean>(true);
-  const [newsError, setNewsError] = useState<string | null>(null);
-
-  // State for AI Summary, now managed client-side
   const [aiSummary, setAiSummary] = useState<string>('');
   const [summaryLastUpdated, setSummaryLastUpdated] = useState<string>('');
-  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(true);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -60,156 +51,56 @@ export default function MarketPulse() {
     }
   }, []);
 
-  // --- NEW: useEffect to fetch RSS News client-side ---
+  // --- NEW: useEffect to fetch ALL market data from a single API route ---
   useEffect(() => {
-    const fetchRssNews = async () => {
-      console.log("DEBUG: Starting RSS news fetch...");
-      setIsLoadingNews(true);
-      setNewsError(null);
-      let allFetchedNews: RssArticle[] = [];
-
-      const rssFeeds = [
-        { url: 'https://www.nasdaq.com/feed/rssoutbound?category=Stocks', sourceName: 'Nasdaq.com' },
-        { url: 'https://www.investing.com/rss/news_25.rss', sourceName: 'Investing.com' },
-      ];
-
-      const FETCH_TIMEOUT_MS = 10000; // Increased to 10 seconds timeout for RSS fetches
+    const fetchMarketData = async () => {
+      console.log("DEBUG: Starting consolidated market data fetch...");
+      setIsLoadingData(true);
+      setDataError(null);
+      setNews([]); // Clear previous news
+      setAiSummary(''); // Clear previous summary
+      setSummaryLastUpdated(''); // Clear previous timestamp
 
       try {
-        const fetchPromises = rssFeeds.map(async (feed) => {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => {
-            console.warn(`DEBUG: Fetch to ${feed.sourceName} timed out, aborting.`);
-            controller.abort();
-          }, FETCH_TIMEOUT_MS); // Set timeout
-
-          try {
-            console.log(`DEBUG: Attempting to fetch from ${feed.sourceName} (${feed.url})...`);
-            const response = await fetch(feed.url, { signal: controller.signal });
-            clearTimeout(timeoutId); // Clear timeout if fetch completes in time
-            console.log(`DEBUG: Response status for ${feed.sourceName}: ${response.status}`);
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error(`Client-side RSS Fetch: Failed to fetch RSS feed from ${feed.sourceName}: ${response.status} - ${response.statusText}. Response: ${errorText.substring(0, 200)}`);
-              return [];
-            }
-
-            const xmlText = await response.text();
-            console.log(`DEBUG: Successfully fetched XML from ${feed.sourceName}. Parsing...`);
-            const result = await parseStringPromise(xmlText, {
-              explicitArray: false,
-              ignoreAttrs: true,
-              trim: true,
-              charkey: '#text',
-            });
-
-            if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
-              console.log(`DEBUG: Successfully parsed ${result.rss.channel.item.length} items from ${feed.sourceName}.`);
-              return result.rss.channel.item.map((item: RssItem) => ({
-                title: item.title || 'No Title',
-                link: item.link || '#',
-                description: item.description || 'No description available.',
-                pubDate: item.pubDate || '',
-                sourceName: feed.sourceName,
-              }));
-            } else {
-              console.warn(`Client-side RSS Fetch: RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
-              return [];
-            }
-          } catch (error: unknown) {
-            clearTimeout(timeoutId); // Ensure timeout is cleared even on error
-            if (error instanceof Error && error.name === 'AbortError') {
-              console.error(`Client-side RSS Fetch: Fetch to ${feed.sourceName} timed out after ${FETCH_TIMEOUT_MS / 1000} seconds.`);
-            } else if (error instanceof Error) {
-              console.error(`Client-side RSS Fetch: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error.message);
-            } else {
-              console.error(`Client-side RSS Fetch: An unknown error occurred fetching or parsing RSS feed from ${feed.sourceName}:`, error);
-            }
-            return [];
-          }
-        });
-
-        const results = await Promise.all(fetchPromises);
-        allFetchedNews = results.flat();
-
-        allFetchedNews.sort((a, b) => {
-          const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-          const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-          return dateB - dateA;
-        });
-
-        setNews(allFetchedNews);
-        console.log(`DEBUG: Total news articles fetched: ${allFetchedNews.length}`);
-      } catch (error: unknown) {
-        console.error("Client-side RSS Fetch: Top-level error fetching multiple RSS feeds:", error);
-        if (error instanceof Error) {
-            setNewsError(`Failed to load news: ${error.message}`);
-        } else {
-            setNewsError("Failed to load news due to an unknown error.");
-        }
-      } finally {
-        setIsLoadingNews(false);
-        console.log("DEBUG: Finished RSS news fetch.");
-      }
-    };
-
-    fetchRssNews();
-  }, []); // Empty dependency array means this runs once on component mount
-
-  // --- EXISTING: useEffect to fetch AI Summary client-side, now depends on news ---
-  useEffect(() => {
-    const fetchAiSummary = async () => {
-      console.log("DEBUG: Starting AI summary fetch...");
-      setIsLoadingSummary(true);
-      setSummaryError(null); // Clear previous summary errors
-      try {
-        if (news.length === 0) {
-          // Only set a message if news loading is complete and there's no news
-          if (!isLoadingNews && newsError === null) {
-            setAiSummary("No news articles available to generate a summary.");
-            setSummaryLastUpdated("N/A");
-          }
-          setIsLoadingSummary(false);
-          console.log("DEBUG: No news to generate summary, skipping AI call.");
-          return;
-        }
-        // Send the news data to the new API route
-        console.log("DEBUG: Sending news data to /api/generate-ai-summary...");
-        const response = await fetch('/api/generate-ai-summary', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ news: news.slice(0, 10).map(article => ({ title: article.title, description: article.description })) }), // Send top 10 articles
-        });
-
-        console.log(`DEBUG: Response status from /api/generate-ai-summary: ${response.status}`);
+        const response = await fetch('/api/market-data'); // Call the new consolidated API route
+        console.log(`DEBUG: Response status from /api/market-data: ${response.status}`);
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error from API'}`);
         }
-        const data = await response.json();
+
+        const data: MarketDataResponse = await response.json();
+        console.log("DEBUG: Consolidated market data fetched successfully.");
+        console.log("DEBUG: Fetched News Count:", data.news.length);
+        console.log("DEBUG: Fetched AI Summary (first 50 chars):", data.aiSummary.substring(0, 50) + '...');
+
+        setNews(data.news);
         setAiSummary(data.aiSummary);
         setSummaryLastUpdated(data.summaryLastUpdated);
-        console.log("DEBUG: AI summary fetched successfully.");
-      } catch (error) {
-        console.error("Failed to fetch AI summary:", error);
-        setSummaryError(`Failed to load today's market summary. Error: ${(error as Error).message || 'Unknown error'}. Please try again later.`);
-        setAiSummary(''); // Clear summary on error
+
+        if (data.error) {
+          setDataError(`Partial data loaded with API error: ${data.error}`);
+        }
+
+      } catch (error: unknown) {
+        console.error("Failed to fetch market data:", error);
+        if (error instanceof Error) {
+          setDataError(`Failed to load market data: ${error.message}. Please try again later.`);
+        } else {
+          setDataError("Failed to load market data due to an unknown error. Please try again later.");
+        }
+        setNews([]); // Ensure news is empty on error
+        setAiSummary(''); // Ensure summary is empty on error
         setSummaryLastUpdated("N/A");
       } finally {
-        setIsLoadingSummary(false);
-        console.log("DEBUG: Finished AI summary fetch.");
+        setIsLoadingData(false);
+        console.log("DEBUG: Finished consolidated market data fetch.");
       }
     };
 
-    // Only fetch AI summary if news has finished loading and no news errors occurred
-    if (!isLoadingNews && newsError === null) {
-      fetchAiSummary();
-    }
-  }, [news, isLoadingNews, newsError]); // Depend on news, isLoadingNews, and newsError
+    fetchMarketData();
+  }, []); // Empty dependency array means this runs once on component mount
 
 
   // State for the floating article panel
@@ -406,10 +297,10 @@ export default function MarketPulse() {
         {/* AI-Generated Market Summary Section */}
         <section className="bg-white rounded-xl shadow-2xl p-8 w-full mb-8">
             <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Daily Market Snapshot (AI-Powered)</h2>
-            {isLoadingSummary ? (
-                <p className="text-lg text-gray-500 text-center">Loading today&apos;s market summary...</p>
-            ) : summaryError ? (
-                <p className="text-lg text-red-600 text-center">{summaryError}</p>
+            {isLoadingData ? (
+                <p className="text-lg text-gray-500 text-center">Loading market summary...</p>
+            ) : dataError ? (
+                <p className="text-lg text-red-600 text-center">{dataError}</p>
             ) : aiSummary ? (
                 <>
                     <p className="text-lg text-gray-700 leading-relaxed text-center max-w-3xl mx-auto">
@@ -444,10 +335,10 @@ export default function MarketPulse() {
         {/* Latest Market News Section (from multiple RSS feeds) */}
         <section className="bg-white rounded-xl shadow-2xl p-8 w-full mb-8 mt-8">
           <h2 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">Latest Market News</h2>
-          {isLoadingNews ? (
+          {isLoadingData ? (
             <div className="text-center text-gray-600 text-lg">Loading news articles...</div>
-          ) : newsError ? (
-            <div className="text-center text-red-600 text-lg">{newsError}</div>
+          ) : dataError ? (
+            <div className="text-center text-red-600 text-lg">{dataError}</div>
           ) : news.length === 0 ? (
             <div className="text-center text-gray-600 text-lg">No news articles found or failed to load.</div>
           ) : (
