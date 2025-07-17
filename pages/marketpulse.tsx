@@ -2,6 +2,7 @@
 // This page integrates TradingView widgets, fetches news from multiple RSS feeds,
 // and includes an AI-generated daily market summary using Gemini 2.0 Flash.
 // Updated: RSS feed fetching in getServerSideProps now includes a timeout for performance.
+// FIX: Resolved 'Unexpected any' TypeScript error in catch block.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -484,12 +485,14 @@ export async function getServerSideProps() {
           console.warn(`getServerSideProps: RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
           return [];
         }
-      } catch (error: any) { // Use 'any' for error type to safely access 'name'
+      } catch (error: unknown) { // FIX: Changed 'any' to 'unknown'
         clearTimeout(timeoutId); // Ensure timeout is cleared even on error
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') { // Safely check for AbortError
           console.error(`getServerSideProps: Fetch to ${feed.sourceName} timed out after ${FETCH_TIMEOUT_MS / 1000} seconds.`);
-        } else {
-          console.error(`getServerSideProps: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error);
+        } else if (error instanceof Error) { // Safely check for other Error instances
+          console.error(`getServerSideProps: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error.message);
+        } else { // Handle non-Error objects
+          console.error(`getServerSideProps: An unknown error occurred fetching or parsing RSS feed from ${feed.sourceName}:`, error);
         }
         return [];
       }
@@ -504,8 +507,11 @@ export async function getServerSideProps() {
       return dateB - dateA;
     });
 
-  } catch (error) {
+  } catch (error: unknown) { // FIX: Changed 'any' to 'unknown'
     console.error("getServerSideProps: Error fetching multiple RSS feeds:", error);
+    if (error instanceof Error) {
+        console.error("getServerSideProps: Top-level error message:", error.message);
+    }
   }
 
   return {
