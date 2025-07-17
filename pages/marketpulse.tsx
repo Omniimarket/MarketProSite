@@ -95,7 +95,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       // Create the copyright div
       const copyrightDiv = document.createElement('div');
       copyrightDiv.className = 'tradingview-widget-copyright';
-      // Fix for react/no-unescaped-entities on this line
+      // Fix for react/no-unescaped-entities on this line (already handled, but keeping eye on it)
       copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>`;
       widgetContainerDiv.appendChild(copyrightDiv);
 
@@ -282,7 +282,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
                     </p>
                 </>
             ) : (
-                <p className="text-lg text-gray-500 text-center">Loading today's market summary...</p>
+                <p className="text-lg text-gray-500 text-center">Loading today&apos;s market summary...</p>
             )}
         </section>
 
