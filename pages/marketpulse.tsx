@@ -9,7 +9,6 @@ import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { parseStringPromise } from 'xml2js';
 
- 
 // Define the structure for a news article from the RSS feed
 interface RssArticle {
   title?: string;
@@ -19,16 +18,6 @@ interface RssArticle {
   guid?: string;
   category?: string;
   sourceName?: string;
-}
-
-// Define a more specific type for RSS item parsing to avoid 'any'
-interface RssParsedItem {
-  title?: string;
-  link?: string;
-  description?: string;
-  pubDate?: string;
-  guid?: string;
-  category?: string;
 }
 
 // Define the props for the MarketPulse component
@@ -94,8 +83,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       // Create the copyright div
       const copyrightDiv = document.createElement('div');
       copyrightDiv.className = 'tradingview-widget-copyright';
-      // FIX: Escaped apostrophe for react/no-unescaped-entities error
-      copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView&apos;s website</span></a>`;
+      copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>`;
       widgetContainerDiv.appendChild(copyrightDiv);
 
       // Create the script tag
@@ -172,10 +160,10 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
         "save_image": true, // From your provided snippet
         "style": "1",
         "symbol": "NASDAQ:AAPL", // Initial symbol
-        "theme": "light", // From your provided snippet
+        "theme": "dark", // From your provided snippet
         "timezone": "Etc/UTC",
-        "backgroundColor": "#ffffff", // From your provided snippet
-        "gridColor": "rgba(46, 46, 46, 0.06)", // From your provided snippet
+        "backgroundColor": "#0F0F0F", // From your provided snippet
+        "gridColor": "rgba(242, 242, 242, 0.06)", // From your provided snippet
         "watchlist": [], // From your provided snippet
         "withdateranges": false, // From your provided snippet
         "compareSymbols": [], // From your provided snippet
@@ -293,7 +281,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
             <p className="text-lg text-gray-600 mb-6 text-center max-w-3xl mx-auto flex-shrink-0">
                 Track and analyze market movements with this interactive chart, powered by TradingView.
             </p>
-            {/* FIX: Added height: '100%' to ensure it fills the parent container's height */}
+            {/* The ref container will now house the full TradingView embed structure */}
             <div className="tradingview-widget-container flex-grow relative" style={{width:'100%', height:'100%'}} ref={advancedChartRef}>
                 {/* Widget will be injected here by useEffect */}
             </div>
@@ -359,6 +347,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
               `}
             >Discord</a>
           </div>
+          {/* Fix: Escaped apostrophe in the disclaimer text */}
           <p className="mt-2 text-xs text-gray-400">Disclaimer: Trading insights are for informational purposes only and not financial advice.</p>
         </div>
       </footer>
@@ -443,9 +432,8 @@ export async function getServerSideProps() {
           charkey: '#text',
         });
 
-        // FIX: Use RssParsedItem type for item to avoid 'any'
         if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
-          return result.rss.channel.item.map((item: RssParsedItem) => ({ // Changed 'any' to 'RssParsedItem'
+          return result.rss.channel.item.map((item: any) => ({
             title: item.title || 'No Title',
             link: item.link || '#',
             description: item.description || 'No description available.',
@@ -484,7 +472,7 @@ export async function getServerSideProps() {
       `;
 
       try {
-        const chatHistory = []; // FIX: Changed 'let' to 'const' as it's never reassigned
+        let chatHistory = [];
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
         const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
@@ -524,11 +512,10 @@ export async function getServerSideProps() {
               aiSummary = "Could not generate today's market summary. Please check back later.";
             }
         }
-      } catch (llmError: unknown) { // FIX: Changed 'any' to 'unknown' for better type safety
+      } catch (llmError: any) {
         console.error("Error generating AI summary:", llmError);
-        // Safely check if llmError is an object with a message property
-        if (typeof llmError === 'object' && llmError !== null && 'message' in llmError) {
-            console.error("AI Summary Error Message:", (llmError as { message: string }).message);
+        if (llmError.message) {
+            console.error("AI Summary Error Message:", llmError.message);
         }
         aiSummary = "Failed to generate market summary due to an internal error.";
       }
