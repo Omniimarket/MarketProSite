@@ -1,7 +1,7 @@
 // pages/api/market-data.ts
 // This API route consolidates fetching RSS news and generating an AI summary using Gemini.
 // It is called client-side to provide all necessary market data.
-// IMPORTANT: Now uses MY_GEMINI_API_KEY environment variable.
+// Updated: Replaced Nasdaq.com RSS feed with MarketWatch.com's main bulletins feed.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { parseStringPromise } from 'xml2js';
@@ -54,11 +54,11 @@ export default async function handler(
   let apiRouteError: string | undefined;
 
   const rssFeeds = [
-    { url: 'https://www.nasdaq.com/feed/rssoutbound?category=Stocks', sourceName: 'Nasdaq.com' },
+    { url: 'https://feeds.marketwatch.com/marketwatch/bulletins', sourceName: 'MarketWatch.com' }, // NEW FEED
     { url: 'https://www.investing.com/rss/news_25.rss', sourceName: 'Investing.com' },
   ];
 
-  const FETCH_TIMEOUT_MS = 10000; // 10 seconds timeout for RSS fetches and Gemini API call
+  const FETCH_TIMEOUT_MS = 15000; // 15 seconds timeout for RSS fetches and Gemini API call
 
   // --- Step 1: Fetch RSS Feeds (Server-to-Server) ---
   try {
@@ -151,7 +151,7 @@ export default async function handler(
       const chatHistory = [];
       chatHistory.push({ role: "user", parts: [{ text: prompt }] });
       const payload = { contents: chatHistory };
-      const apiKey = process.env.MY_GEMINI_API_KEY || ''; // Read from .env.local - NEW NAME HERE
+      const apiKey = process.env.MY_GEMINI_API_KEY || ''; // Read from .env.local
 
       if (!apiKey) {
           console.error("API Route (market-data): MY_GEMINI_API_KEY environment variable is not set!");
