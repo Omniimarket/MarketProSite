@@ -20,6 +20,18 @@ interface RssArticle {
   sourceName?: string;
 }
 
+// Define the structure for an RSS item from xml2js parsing
+interface RssItem {
+  '#text'?: string; // For cases where content is directly in a text node
+  title?: string;
+  link?: string;
+  description?: string;
+  pubDate?: string;
+  guid?: string;
+  category?: string;
+}
+
+
 // Define the props for the MarketPulse component
 interface MarketPulseProps {
   news: RssArticle[];
@@ -83,6 +95,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       // Create the copyright div
       const copyrightDiv = document.createElement('div');
       copyrightDiv.className = 'tradingview-widget-copyright';
+      // Fix for react/no-unescaped-entities on this line
       copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>`;
       widgetContainerDiv.appendChild(copyrightDiv);
 
@@ -433,7 +446,8 @@ export async function getServerSideProps() {
         });
 
         if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
-          return result.rss.channel.item.map((item: any) => ({
+          // Fix: Use RssItem interface for the item type
+          return result.rss.channel.item.map((item: RssItem) => ({
             title: item.title || 'No Title',
             link: item.link || '#',
             description: item.description || 'No description available.',
@@ -472,7 +486,8 @@ export async function getServerSideProps() {
       `;
 
       try {
-        let chatHistory = [];
+        // Fix: Changed let to const as chatHistory is not reassigned
+        const chatHistory = [];
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
         const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
@@ -512,10 +527,13 @@ export async function getServerSideProps() {
               aiSummary = "Could not generate today's market summary. Please check back later.";
             }
         }
-      } catch (llmError: any) {
+      } catch (llmError: unknown) { // Fix: Changed any to unknown for caught errors
         console.error("Error generating AI summary:", llmError);
-        if (llmError.message) {
+        // Type guard to safely access message property if llmError is an Error object
+        if (llmError instanceof Error) {
             console.error("AI Summary Error Message:", llmError.message);
+        } else if (typeof llmError === 'object' && llmError !== null && 'message' in llmError) {
+            console.error("AI Summary Error Message:", (llmError as { message: string }).message);
         }
         aiSummary = "Failed to generate market summary due to an internal error.";
       }
