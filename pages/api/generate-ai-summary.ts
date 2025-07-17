@@ -1,6 +1,8 @@
 // pages/api/generate-ai-summary.ts
 // This API route handles generating an AI summary using Gemini, based on news data sent from the client.
 // It is called client-side to improve initial page load performance.
+// Updated: Returns 500 status for API key missing or Gemini API errors.
+// IMPORTANT: Added a temporary console.log for debugging GEMINI_API_KEY.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
@@ -45,6 +47,10 @@ export default async function handler(
     chatHistory.push({ role: "user", parts: [{ text: prompt }] });
     const payload = { contents: chatHistory };
     const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
+
+    // --- TEMPORARY DEBUGGING LOG: THIS WILL SHOW IN VERCEL FUNCTION LOGS ---
+    console.log(`DEBUG: API Key (first 5 chars): ${apiKey.substring(0, 5)}...`);
+    // --- END TEMPORARY DEBUGGING LOG ---
 
     if (!apiKey) {
         console.error("API Route (generate-ai-summary): GEMINI_API_KEY environment variable is not set!");
