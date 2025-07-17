@@ -1,6 +1,7 @@
 // pages/api/market-data.ts
 // This API route consolidates fetching RSS news and generating an AI summary using Gemini.
 // It is called client-side to provide all necessary market data.
+// IMPORTANT: Now uses MY_GEMINI_API_KEY environment variable.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { parseStringPromise } from 'xml2js';
@@ -38,6 +39,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse | { error: string }>
 ) {
+  // Log all environment variables at the very start for debugging
+  console.log("DEBUG: process.env keys:", Object.keys(process.env));
+  console.log(`DEBUG: process.env.MY_GEMINI_API_KEY raw value: ${process.env.MY_GEMINI_API_KEY ? process.env.MY_GEMINI_API_KEY.substring(0, 5) + '...' : 'undefined'}`);
+
+
   if (req.method !== 'GET') { // This API route will be a GET request from the client
     return res.status(405).json({ error: 'Method Not Allowed. This API route only accepts GET requests.' });
   }
@@ -145,15 +151,11 @@ export default async function handler(
       const chatHistory = [];
       chatHistory.push({ role: "user", parts: [{ text: prompt }] });
       const payload = { contents: chatHistory };
-      const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
-
-      // --- TEMPORARY DEBUGGING LOG: THIS WILL SHOW IN VERCEL FUNCTION LOGS ---
-      console.log(`DEBUG: API Key (first 5 chars): ${apiKey.substring(0, 5)}...`);
-      // --- END TEMPORARY DEBUGGING LOG ---
+      const apiKey = process.env.MY_GEMINI_API_KEY || ''; // Read from .env.local - NEW NAME HERE
 
       if (!apiKey) {
-          console.error("API Route (market-data): GEMINI_API_KEY environment variable is not set!");
-          apiRouteError = apiRouteError ? `${apiRouteError} | GEMINI_API_KEY is missing.` : "GEMINI_API_KEY environment variable is not set on the server. Please configure it in Vercel.";
+          console.error("API Route (market-data): MY_GEMINI_API_KEY environment variable is not set!");
+          apiRouteError = apiRouteError ? `${apiRouteError} | MY_GEMINI_API_KEY is missing.` : "MY_GEMINI_API_KEY environment variable is not set on the server. Please configure it in Vercel.";
           aiSummary = "AI summary unavailable: API key missing.";
           summaryLastUpdated = "N/A";
       } else {
