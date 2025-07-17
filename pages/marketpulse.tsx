@@ -9,6 +9,7 @@ import Image from 'next/image';
 import React, { useEffect, useRef, useState } from 'react';
 import { parseStringPromise } from 'xml2js';
 
+ 
 // Define the structure for a news article from the RSS feed
 interface RssArticle {
   title?: string;
@@ -94,7 +95,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       const copyrightDiv = document.createElement('div');
       copyrightDiv.className = 'tradingview-widget-copyright';
       // FIX: Escaped apostrophe for react/no-unescaped-entities error
-      copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>`;
+      copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView&apos;s website</span></a>`;
       widgetContainerDiv.appendChild(copyrightDiv);
 
       // Create the script tag
