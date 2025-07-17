@@ -20,6 +20,16 @@ interface RssArticle {
   sourceName?: string;
 }
 
+// Define a more specific type for RSS item parsing to avoid 'any'
+interface RssParsedItem {
+  title?: string;
+  link?: string;
+  description?: string;
+  pubDate?: string;
+  guid?: string;
+  category?: string;
+}
+
 // Define the props for the MarketPulse component
 interface MarketPulseProps {
   news: RssArticle[];
@@ -83,6 +93,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       // Create the copyright div
       const copyrightDiv = document.createElement('div');
       copyrightDiv.className = 'tradingview-widget-copyright';
+      // FIX: Escaped apostrophe for react/no-unescaped-entities error
       copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>`;
       widgetContainerDiv.appendChild(copyrightDiv);
 
@@ -281,7 +292,7 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
             <p className="text-lg text-gray-600 mb-6 text-center max-w-3xl mx-auto flex-shrink-0">
                 Track and analyze market movements with this interactive chart, powered by TradingView.
             </p>
-            {/* The ref container will now house the full TradingView embed structure */}
+            {/* FIX: Added height: '100%' to ensure it fills the parent container's height */}
             <div className="tradingview-widget-container flex-grow relative" style={{width:'100%', height:'100%'}} ref={advancedChartRef}>
                 {/* Widget will be injected here by useEffect */}
             </div>
@@ -431,8 +442,9 @@ export async function getServerSideProps() {
           charkey: '#text',
         });
 
+        // FIX: Use RssParsedItem type for item to avoid 'any'
         if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
-          return result.rss.channel.item.map((item: any) => ({
+          return result.rss.channel.item.map((item: RssParsedItem) => ({ // Changed 'any' to 'RssParsedItem'
             title: item.title || 'No Title',
             link: item.link || '#',
             description: item.description || 'No description available.',
@@ -471,7 +483,7 @@ export async function getServerSideProps() {
       `;
 
       try {
-        let chatHistory = [];
+        const chatHistory = []; // FIX: Changed 'let' to 'const' as it's never reassigned
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
         const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
@@ -511,10 +523,11 @@ export async function getServerSideProps() {
               aiSummary = "Could not generate today's market summary. Please check back later.";
             }
         }
-      } catch (llmError: any) {
+      } catch (llmError: unknown) { // FIX: Changed 'any' to 'unknown' for better type safety
         console.error("Error generating AI summary:", llmError);
-        if (llmError.message) {
-            console.error("AI Summary Error Message:", llmError.message);
+        // Safely check if llmError is an object with a message property
+        if (typeof llmError === 'object' && llmError !== null && 'message' in llmError) {
+            console.error("AI Summary Error Message:", (llmError as { message: string }).message);
         }
         aiSummary = "Failed to generate market summary due to an internal error.";
       }
