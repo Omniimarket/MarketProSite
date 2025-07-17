@@ -74,20 +74,16 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
 
   // Function to load a TradingView widget by appending only the script tag
   // The static HTML structure for the widget container is now in the JSX.
-  const loadTradingViewWidget = (containerRef: React.MutableRefObject<HTMLDivElement | null>, scriptSrc: string, config: object) => {
+  const loadTradingViewWidget = (containerRef: React.MutableRefObject<HTMLDivElement | null>, scriptSrc: string, config: object, innerContainerId: string) => {
     if (containerRef.current) {
-      // Clear only the script, not the entire container HTML
-      // We need to find the specific inner div where the widget script expects to render
-      const innerWidgetDiv = containerRef.current.querySelector('.tradingview-widget-container__widget');
-      if (innerWidgetDiv) {
-        innerWidgetDiv.innerHTML = ''; // Clear any previous widget content
-      }
-
-      // Remove any existing script to prevent duplicates
+      // Remove any existing script to prevent duplicates on re-renders
       const existingScript = containerRef.current.querySelector(`script[src="${scriptSrc}"]`);
       if (existingScript) {
         existingScript.remove();
       }
+
+      // The TradingView script will find its container by the 'container' property in the config.
+      // We ensure the inner div has the correct ID.
 
       const script = document.createElement('script');
       script.src = scriptSrc;
@@ -95,9 +91,10 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       script.type = 'text/javascript';
 
       // Place the JSON configuration directly as the innerHTML of the script tag.
-      // The TradingView embed script reads its configuration from here.
-      script.innerHTML = JSON.stringify(config);
+      // IMPORTANT: Add the 'container' property to the config, pointing to the inner div's ID.
+      script.innerHTML = JSON.stringify({ ...config, container: innerContainerId });
 
+      // Append the script to the main container div (which holds the inner widget div)
       containerRef.current.appendChild(script);
     }
   };
@@ -140,19 +137,19 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
         "colorTheme": "light",
         "locale": "en"
       };
-      // No containerId needed here, as the script will find its own container based on the HTML structure
-      loadTradingViewWidget(tickerTapeRef, "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js", config);
+      // Pass the ID of the inner widget div to the load function
+      loadTradingViewWidget(tickerTapeRef, "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js", config, "ticker-tape-inner-widget");
     }
   }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const config = {
-        "allow_symbol_change": true, // This is the key property
+        "allow_symbol_change": true, // This is the key property for symbol search
         "calendar": false,
         "details": false,
         "hide_side_toolbar": true,
-        "hide_top_toolbar": false, // This needs to be false for the symbol changer to appear
+        "hide_top_toolbar": false, // IMPORTANT: Set to false to show the top toolbar with symbol search
         "hide_legend": false,
         "hide_volume": false,
         "hotlist": false,
@@ -171,12 +168,10 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
         "studies": [],
         "autosize": true
       };
-      // No containerId needed here, as the script will find its own container based on the HTML structure
-      loadTradingViewWidget(advancedChartRef, "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js", config);
+      // Pass the ID of the inner widget div to the load function
+      loadTradingViewWidget(advancedChartRef, "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js", config, "advanced-chart-inner-widget");
     }
   }, []);
-
-  // Removed useEffects for technicalAnalysisRef, financialsRef, economicCalendarRef, timelineRef
 
 
   return (
@@ -253,7 +248,8 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
         <section className="bg-white rounded-xl shadow-md p-2 w-full mb-8">
             {/* Static HTML structure for Ticker Tape Widget */}
             <div className="tradingview-widget-container" ref={tickerTapeRef} style={{ height: 'auto', width: '100%' }}>
-              <div className="tradingview-widget-container__widget" style={{ height: '70px', width: '100%' }}></div> {/* Adjust height as needed for ticker tape */}
+              {/* Added ID to the inner widget div */}
+              <div id="ticker-tape-inner-widget" className="tradingview-widget-container__widget" style={{ height: '70px', width: '100%' }}></div> {/* Adjust height as needed for ticker tape */}
               <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span className="blue-text">Track all markets on TradingView</span></a></div>
               {/* Script will be injected here by useEffect */}
             </div>
@@ -287,7 +283,8 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
             </p>
             {/* Static HTML structure for Advanced Chart Widget */}
             <div className="tradingview-widget-container flex-grow relative" ref={advancedChartRef} style={{width:'100%', height:'100%'}}>
-              <div className="tradingview-widget-container__widget" style={{height:'calc(100% - 32px)', width:'100%'}}></div>
+              {/* Added ID to the inner widget div */}
+              <div id="advanced-chart-inner-widget" className="tradingview-widget-container__widget" style={{height:'calc(100% - 32px)', width:'100%'}}></div>
               <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span className="blue-text">Track all markets on TradingView</span></a></div>
               {/* Script will be injected here by useEffect */}
             </div>
@@ -471,7 +468,7 @@ export async function getServerSideProps() {
         `Title: ${article.title}\nDescription: ${article.description}`
       ).join('\n\n');
 
-      const prompt = `Summarize the following stock market news articles into a concise, 2-3 paragraph daily market overview. Focus on key events, major company news, and overall market sentiment. Do not include a title for the summary.
+      const prompt = `Summarize the following stock market news articles into a concise, 2-3 paragraph daily market overview. Focus on key events, major company news and overall market sentiment. Do not include a title for the summary.
 
       News Articles:
       ${newsContentForLLM}
