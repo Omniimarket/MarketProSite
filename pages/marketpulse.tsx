@@ -1,7 +1,7 @@
 // pages/marketpulse.tsx
 // This page integrates TradingView widgets, fetches news from multiple RSS feeds,
 // and includes an AI-generated daily market summary using Gemini 2.0 Flash.
-// Updated: AI Summary fetching moved to client-side for faster page load.
+// Updated: RSS feed fetching in getServerSideProps now includes a timeout for performance.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -35,7 +35,7 @@ interface RssItem {
 // Define the props for the MarketPulse component
 interface MarketPulseProps {
   news: RssArticle[];
-  // aiSummary and summaryLastUpdated are now fetched client-side, so removed from props
+  // aiSummary and summaryLastUpdated are now fetched client-side
 }
 
 export default function MarketPulse({ news }: MarketPulseProps) {
@@ -59,7 +59,7 @@ export default function MarketPulse({ news }: MarketPulseProps) {
     }
   }, []);
 
-  // --- NEW: useEffect to fetch AI Summary client-side ---
+  // useEffect to fetch AI Summary client-side
   useEffect(() => {
     const fetchAiSummary = async () => {
       setIsLoadingSummary(true);
@@ -447,10 +447,16 @@ export async function getServerSideProps() {
     { url: 'https://www.investing.com/rss/news_25.rss', sourceName: 'Investing.com' },
   ];
 
+  const FETCH_TIMEOUT_MS = 8000; // 8 seconds timeout for RSS fetches
+
   try {
     const fetchPromises = rssFeeds.map(async (feed) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS); // Set timeout
+
       try {
-        const response = await fetch(feed.url);
+        const response = await fetch(feed.url, { signal: controller.signal });
+        clearTimeout(timeoutId); // Clear timeout if fetch completes in time
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -478,8 +484,13 @@ export async function getServerSideProps() {
           console.warn(`getServerSideProps: RSS feed structure unexpected or no items found for ${feed.sourceName}:`, result);
           return [];
         }
-      } catch (error) {
-        console.error(`getServerSideProps: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error);
+      } catch (error: any) { // Use 'any' for error type to safely access 'name'
+        clearTimeout(timeoutId); // Ensure timeout is cleared even on error
+        if (error.name === 'AbortError') {
+          console.error(`getServerSideProps: Fetch to ${feed.sourceName} timed out after ${FETCH_TIMEOUT_MS / 1000} seconds.`);
+        } else {
+          console.error(`getServerSideProps: Error fetching or parsing RSS feed from ${feed.sourceName}:`, error);
+        }
         return [];
       }
     });
