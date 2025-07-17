@@ -41,6 +41,7 @@ interface MarketPulseProps {
 
 export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: MarketPulseProps) {
   // Refs for each TradingView widget container - ONLY TWO WIDGETS
+  // These refs will now point to the outermost 'tradingview-widget-container' div
   const tickerTapeRef = useRef<HTMLDivElement>(null);
   const advancedChartRef = useRef<HTMLDivElement>(null);
   // Removed: technicalAnalysisRef, financialsRef, economicCalendarRef, timelineRef
@@ -71,46 +72,33 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
     setSelectedArticle(null);
   };
 
-  // Function to load a TradingView widget by directly injecting the script content
-  // This function now correctly places the config JSON inside the script tag,
-  // mimicking TradingView's standard embed code.
-  const loadTradingViewWidget = (containerRef: React.MutableRefObject<HTMLDivElement | null>, scriptSrc: string, config: object, containerId: string) => {
+  // Function to load a TradingView widget by appending only the script tag
+  // The static HTML structure for the widget container is now in the JSX.
+  const loadTradingViewWidget = (containerRef: React.MutableRefObject<HTMLDivElement | null>, scriptSrc: string, config: object) => {
     if (containerRef.current) {
-      containerRef.current.innerHTML = ''; // Clear any existing widget
+      // Clear only the script, not the entire container HTML
+      // We need to find the specific inner div where the widget script expects to render
+      const innerWidgetDiv = containerRef.current.querySelector('.tradingview-widget-container__widget');
+      if (innerWidgetDiv) {
+        innerWidgetDiv.innerHTML = ''; // Clear any previous widget content
+      }
 
-      // Create the main widget container div
-      const widgetContainerDiv = document.createElement('div');
-      widgetContainerDiv.className = 'tradingview-widget-container';
-      widgetContainerDiv.style.height = '100%';
-      widgetContainerDiv.style.width = '100%';
+      // Remove any existing script to prevent duplicates
+      const existingScript = containerRef.current.querySelector(`script[src="${scriptSrc}"]`);
+      if (existingScript) {
+        existingScript.remove();
+      }
 
-      // Create the inner widget div with a specific ID
-      const widgetDiv = document.createElement('div');
-      widgetDiv.id = containerId; // Assign the unique ID
-      widgetDiv.className = 'tradingview-widget-container__widget';
-      widgetDiv.style.height = 'calc(100% - 32px)'; // As per your provided snippet
-      widgetDiv.style.width = '100%';
-      widgetContainerDiv.appendChild(widgetDiv);
-
-      // Create the copyright div
-      const copyrightDiv = document.createElement('div');
-      copyrightDiv.className = 'tradingview-widget-copyright';
-      // Fix for react/no-unescaped-entities on this line (already handled, but keeping eye on it)
-      copyrightDiv.innerHTML = `<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>`;
-      widgetContainerDiv.appendChild(copyrightDiv);
-
-      // Create the script tag
       const script = document.createElement('script');
       script.src = scriptSrc;
       script.async = true;
       script.type = 'text/javascript';
 
-      // IMPORTANT: Place the JSON configuration directly as the innerHTML of the script tag.
+      // Place the JSON configuration directly as the innerHTML of the script tag.
       // The TradingView embed script reads its configuration from here.
       script.innerHTML = JSON.stringify(config);
 
-      widgetContainerDiv.appendChild(script);
-      containerRef.current.appendChild(widgetContainerDiv);
+      containerRef.current.appendChild(script);
     }
   };
 
@@ -152,8 +140,8 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
         "colorTheme": "light",
         "locale": "en"
       };
-      // Use a unique ID for the ticker tape widget
-      loadTradingViewWidget(tickerTapeRef, "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js", config, "tradingview-ticker-tape-widget");
+      // No containerId needed here, as the script will find its own container based on the HTML structure
+      loadTradingViewWidget(tickerTapeRef, "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js", config);
     }
   }, []);
 
@@ -161,30 +149,30 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
     if (typeof window !== 'undefined') {
       const config = {
         "allow_symbol_change": true, // This is the key property
-        "calendar": false, // From your provided snippet
-        "details": false, // From your provided snippet
-        "hide_side_toolbar": true, // From your provided snippet
-        "hide_top_toolbar": false, // From your provided snippet (important for symbol changer)
-        "hide_legend": false, // From your provided snippet
-        "hide_volume": false, // From your provided snippet
-        "hotlist": false, // From your provided snippet
+        "calendar": false,
+        "details": false,
+        "hide_side_toolbar": true,
+        "hide_top_toolbar": false, // This needs to be false for the symbol changer to appear
+        "hide_legend": false,
+        "hide_volume": false,
+        "hotlist": false,
         "interval": "D",
         "locale": "en",
-        "save_image": true, // From your provided snippet
+        "save_image": true,
         "style": "1",
         "symbol": "NASDAQ:AAPL", // Initial symbol
-        "theme": "dark", // From your provided snippet
+        "theme": "dark",
         "timezone": "Etc/UTC",
-        "backgroundColor": "#0F0F0F", // From your provided snippet
-        "gridColor": "rgba(242, 242, 242, 0.06)", // From your provided snippet
-        "watchlist": [], // From your provided snippet
-        "withdateranges": false, // From your provided snippet
-        "compareSymbols": [], // From your provided snippet
-        "studies": [], // From your provided snippet
+        "backgroundColor": "#0F0F0F",
+        "gridColor": "rgba(242, 242, 242, 0.06)",
+        "watchlist": [],
+        "withdateranges": false,
+        "compareSymbols": [],
+        "studies": [],
         "autosize": true
       };
-      // Use a unique ID for the advanced chart widget
-      loadTradingViewWidget(advancedChartRef, "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js", config, "tradingview-advanced-chart-widget");
+      // No containerId needed here, as the script will find its own container based on the HTML structure
+      loadTradingViewWidget(advancedChartRef, "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js", config);
     }
   }, []);
 
@@ -263,8 +251,11 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
       <main className="flex-grow container mx-auto p-6 lg:p-10 flex flex-col items-center">
           {/* TradingView Ticker Tape Widget - Positioned at the very top */}
         <section className="bg-white rounded-xl shadow-md p-2 w-full mb-8">
-            <div className="tradingview-widget-container" ref={tickerTapeRef}>
-                {/* Widget will be injected here by useEffect */}
+            {/* Static HTML structure for Ticker Tape Widget */}
+            <div className="tradingview-widget-container" ref={tickerTapeRef} style={{ height: 'auto', width: '100%' }}>
+              <div className="tradingview-widget-container__widget" style={{ height: '70px', width: '100%' }}></div> {/* Adjust height as needed for ticker tape */}
+              <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span className="blue-text">Track all markets on TradingView</span></a></div>
+              {/* Script will be injected here by useEffect */}
             </div>
         </section>
 
@@ -294,9 +285,11 @@ export default function MarketPulse({ news, aiSummary, summaryLastUpdated }: Mar
             <p className="text-lg text-gray-600 mb-6 text-center max-w-3xl mx-auto flex-shrink-0">
                 Track and analyze market movements with this interactive chart, powered by TradingView.
             </p>
-            {/* The ref container will now house the full TradingView embed structure */}
-            <div className="tradingview-widget-container flex-grow relative" style={{width:'100%', height:'100%'}} ref={advancedChartRef}>
-                {/* Widget will be injected here by useEffect */}
+            {/* Static HTML structure for Advanced Chart Widget */}
+            <div className="tradingview-widget-container flex-grow relative" ref={advancedChartRef} style={{width:'100%', height:'100%'}}>
+              <div className="tradingview-widget-container__widget" style={{height:'calc(100% - 32px)', width:'100%'}}></div>
+              <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span className="blue-text">Track all markets on TradingView</span></a></div>
+              {/* Script will be injected here by useEffect */}
             </div>
         </section>
 
@@ -446,7 +439,6 @@ export async function getServerSideProps() {
         });
 
         if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
-          // Fix: Use RssItem interface for the item type
           return result.rss.channel.item.map((item: RssItem) => ({
             title: item.title || 'No Title',
             link: item.link || '#',
@@ -486,11 +478,15 @@ export async function getServerSideProps() {
       `;
 
       try {
-        // Fix: Changed let to const as chatHistory is not reassigned
         const chatHistory = [];
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
         const apiKey = process.env.GEMINI_API_KEY || ''; // Read from .env.local
+
+        // --- DEBUGGING LOG ---
+        console.log({ geminiApiKeyFromEnv: apiKey });
+        // --- END DEBUGGING LOG ---
+
         if (!apiKey) {
             console.error("GEMINI_API_KEY environment variable is not set!");
             aiSummary = "API key missing. Please set GEMINI_API_KEY in your .env.local file.";
@@ -527,9 +523,8 @@ export async function getServerSideProps() {
               aiSummary = "Could not generate today's market summary. Please check back later.";
             }
         }
-      } catch (llmError: unknown) { // Fix: Changed any to unknown for caught errors
+      } catch (llmError: unknown) {
         console.error("Error generating AI summary:", llmError);
-        // Type guard to safely access message property if llmError is an Error object
         if (llmError instanceof Error) {
             console.error("AI Summary Error Message:", llmError.message);
         } else if (typeof llmError === 'object' && llmError !== null && 'message' in llmError) {
