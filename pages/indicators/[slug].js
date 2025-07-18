@@ -1,9 +1,10 @@
 // pages/indicators/[slug].js
 // Dynamic route for individual indicator detail pages, fetching content from Sanity.
 // Updated: 'Full Details' section is now closed by default on page load.
-// Includes: Lemon Squeezy integration, dynamic main image aspect ratio,
+// Includes: Payhip integration, dynamic main image aspect ratio,
 // square & sharp thumbnails, hover zoom, and custom PNG favicon.
 // Also updated: Standardized header and footer for site consistency.
+// FIX: Removed problematic comment syntax from JSX attribute.
 
 import Head from 'next/head';
 import Link from 'next/link';
@@ -15,7 +16,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 export default function IndicatorDetail({ indicator }) {
     // State for collapsible full details - set to false to be CLOSED by default
-    const [isDetailsExpanded, setIsDetailsExpanded] = useState(false); // CHANGED: from true to false
+    const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
     // State for collapsible disclosures - remains false to be closed by default
     const [isDisclosuresExpanded, setIsDisclosuresExpanded] = useState(false);
 
@@ -327,9 +328,9 @@ export default function IndicatorDetail({ indicator }) {
 
                         <div className="pt-6 border-t border-gray-200">
                             <p className="text-3xl font-extrabold text-indigo-700 mb-4">Price: {indicator.price}</p>
-                            {indicator.lemonSqueezyProductUrl ? (
+                            {indicator.payhipProductUrl ? (
                                 <a
-                                    href={indicator.lemonSqueezyProductUrl}
+                                    href={indicator.payhipProductUrl} // Corrected: Removed problematic comment
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="block w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white font-semibold rounded-lg py-4 text-center text-xl hover:from-green-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300"
@@ -408,7 +409,7 @@ export async function getStaticProps({ params }) {
         slug,
         shortDescription,
         price,
-        lemonSqueezyProductUrl,
+        payhipProductUrl, // Fetch the new field
         galleryImages[] {
             asset->{
                 _id,
