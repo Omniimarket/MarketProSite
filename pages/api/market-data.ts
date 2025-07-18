@@ -1,7 +1,7 @@
 // pages/api/market-data.ts
 // This API route consolidates fetching RSS news and generating an AI summary using Gemini.
 // It is called client-side to provide all necessary market data.
-// Updated: Replaced Nasdaq.com RSS feed with MarketWatch.com's main bulletins feed.
+// Updated: Implemented fallback to use article title if description is missing from RSS feed.
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { parseStringPromise } from 'xml2js';
@@ -53,8 +53,9 @@ export default async function handler(
   let summaryLastUpdated: string = '';
   let apiRouteError: string | undefined;
 
+  // --- ORIGINAL RSS FEEDS LIST ---
   const rssFeeds = [
-    { url: 'https://feeds.marketwatch.com/marketwatch/bulletins', sourceName: 'MarketWatch.com' }, // NEW FEED
+    { url: 'https://feeds.marketwatch.com/marketwatch/bulletins', sourceName: 'MarketWatch.com' },
     { url: 'https://www.investing.com/rss/news_25.rss', sourceName: 'Investing.com' },
   ];
 
@@ -92,8 +93,9 @@ export default async function handler(
         if (result && result.rss && result.rss.channel && Array.isArray(result.rss.channel.item)) {
           return result.rss.channel.item.map((item: RssItem) => ({
             title: item.title || 'No Title',
+            // --- FIX: Use title as fallback if description is empty ---
+            description: item.description || item.title || 'No description available.',
             link: item.link || '#',
-            description: item.description || 'No description available.',
             pubDate: item.pubDate || '',
             sourceName: feed.sourceName,
           }));
@@ -137,7 +139,7 @@ export default async function handler(
   if (allNews.length > 0) {
     try {
       console.log("API Route (market-data): Starting AI summary generation...");
-      const topArticles = allNews.slice(0, 10);
+      const topArticles = allNews.slice(0, 10); // Still limit to 10 for daily summary
       const newsContentForLLM = topArticles.map(article =>
         `Title: ${article.title || 'No Title'}\nDescription: ${article.description || 'No description available.'}`
       ).join('\n\n');
