@@ -296,7 +296,7 @@ export default function MarketPulse() {
 
         {/* AI-Generated Market Summary Section */}
         <section className="bg-white rounded-xl shadow-2xl p-8 w-full mb-8">
-            <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Daily Market Snapshot (AI-Powered)</h2>
+            <h2 className="text-4xl font-extrabold text-gray-800 mb-6 text-center">Stock Market For Today (AI-Powered)</h2>
             {isLoadingData ? (
                 <p className="text-lg text-gray-500 text-center">Loading market summary...</p>
             ) : dataError ? (
